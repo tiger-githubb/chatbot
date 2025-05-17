@@ -1,0 +1,6 @@
+pytest
+fastapi[standard]
+pydantic_settings
+boto3
+mangum
+httpx
