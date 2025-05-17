@@ -11,11 +11,6 @@ Parameters:
     AllowedValues:
       - aristidekarbou
       - dev
-      - preprod
-      - prod
-      - aristidekarbou_dev
-      - aristidekarbou_preprod
-      - aristidekarbou_prod
 
 ###############################################################################
 Resources:
