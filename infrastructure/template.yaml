@@ -4,16 +4,22 @@ Description: AWS CloudFormation Template for the Application
 
 ###############################################################################
 Parameters:
-###############################################################################
+  ###############################################################################
   EnvironmentName:
     Description: Environment name for the application dev/staging/production
     Type: String
     AllowedValues:
-      - hervlokossou
+      - aristidekarbou
+      - dev
+      - preprod
+      - prod
+      - aristidekarbou_dev
+      - aristidekarbou_preprod
+      - aristidekarbou_prod
 
 ###############################################################################
 Resources:
-###############################################################################
+  ###############################################################################
   DynamoDBTable:
     Type: "AWS::DynamoDB::Table"
     Properties:
@@ -46,11 +52,10 @@ Resources:
     Properties:
       Name: !Sub "chatbot-apigateway-${EnvironmentName}"
 
-
 Outputs:
   DynamoDBTableName:
     Value: !Ref DynamoDBTable
   ApiUrl:
     Description: URL of your API
     Value:
-      Fn::Sub: 'https://${Api}.execute-api.${AWS::Region}.${AWS::URLSuffix}/'
+      Fn::Sub: "https://${Api}.execute-api.${AWS::Region}.${AWS::URLSuffix}/"
