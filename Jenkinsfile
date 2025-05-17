@@ -21,7 +21,7 @@ pipeline {
     stage('Environnement variable injection'){
             steps {
                 script{
-                    withCredentials([file(credentialsId: 'aristidekarbou-env-file', variable: 'ENV_FILE')]) {
+                    withCredentials([file(credentialsId: 'aristidekarbou-chatbot-env-file', variable: 'ENV_FILE')]) {
                         sh "cat ${ENV_FILE} > .env"
                     }
                 }
