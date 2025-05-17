@@ -18,6 +18,15 @@ pipeline {
                 sh "make venv && make install"
             }
         }
+    stage('Environnement variable injection'){
+            steps {
+                script{
+                    withCredentials([file(credentialsId: 'aristidekarbou-env-file', variable: 'ENV_FILE')]) {
+                        sh "cat ${ENV_FILE} > .env"
+                    }
+                }
+            }
+        }
 
 
         stage('Tests Unitaires') {
