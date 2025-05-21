@@ -15,7 +15,7 @@ pipeline {
         stage('Initialisation') {
             steps {
                 sh "echo Branch name ${BRANCH_NAME}"
-                sh "make venv && make install"
+                sh "make venv && make install  "
             }
         }
     stage('Environnement variable injection'){
