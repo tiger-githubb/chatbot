@@ -4,4 +4,6 @@ pydantic_settings
 boto3
 mangum
 httpx
-mistralai
+mistralai==0.4.2
+python-telegram-bot
+requests
