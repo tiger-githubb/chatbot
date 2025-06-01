@@ -8,7 +8,9 @@ import os
 from pathlib import Path
 
 # Ajouter le répertoire src au path pour l'import
-sys.path.insert(0, str(Path(__file__).parent / "src"))
+src_dir = Path(__file__).parent / "src"
+if str(src_dir) not in sys.path:
+    sys.path.insert(0, str(src_dir))
 
 def test_config():
     """Test de la configuration"""
