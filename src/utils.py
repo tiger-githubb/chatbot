@@ -6,7 +6,7 @@ from typing import List
 
 import boto3
 
-from src.config import env_vars
+from config import settings
 ## Simple edit
 
 
@@ -16,14 +16,14 @@ class Utils:
         """
         Marque une conversation comme close (ajoute ou met à jour un item status=closed).
         """
-        dynamo_client = boto3.client("dynamodb", region_name=env_vars.AWS_REGION_NAME)
+        dynamo_client = boto3.client("dynamodb", region_name=settings.AWS_REGION)
         # On récupère tous les items de la conversation pour cet utilisateur et on les met à jour
         items = Utils.get_conversation_history_by_id(conversation_id, telegram_id)
         for item in items:
             pk = item['PK']['S']
             sk = item['SK']['S']
             dynamo_client.update_item(
-                TableName=env_vars.DYNAMO_TABLE,
+                TableName=settings.DYNAMO_TABLE,
                 Key={"PK": {"S": pk}, "SK": {"S": sk}},
                 UpdateExpression="SET #s = :closed",
                 ExpressionAttributeNames={"#s": "status"},
@@ -35,9 +35,9 @@ class Utils:
         """
         Retourne le dernier conversation_id actif (status != closed) pour un utilisateur.
         """
-        dynamo_client = boto3.client("dynamodb", region_name=env_vars.AWS_REGION_NAME)
+        dynamo_client = boto3.client("dynamodb", region_name=settings.AWS_REGION)
         response = dynamo_client.query(
-            TableName=env_vars.DYNAMO_TABLE,
+            TableName=settings.DYNAMO_TABLE,
             KeyConditionExpression='PK = :pk',
             ExpressionAttributeValues={
                 ':pk': {'S': f'USER#{telegram_id}'},
@@ -68,13 +68,13 @@ class Utils:
         Récupère l'historique des messages pour un conversation_id donné (optionnellement filtré par telegram_id).
         Nécessite que conversation_id soit un attribut dans chaque item.
         """
-        dynamo_client = boto3.client("dynamodb", region_name=env_vars.AWS_REGION_NAME)
+        dynamo_client = boto3.client("dynamodb", region_name=settings.AWS_REGION)
         # Utilisation de Query avec FilterExpression (pas optimal, mais pas de Scan)
         # Si un GSI sur conversation_id existe, il faudrait l'utiliser ici
         key_condition = 'PK = :pk'
         expr_attr = {':pk': {'S': f'USER#{telegram_id}'}}
         response = dynamo_client.query(
-            TableName=env_vars.DYNAMO_TABLE,
+            TableName=settings.DYNAMO_TABLE,
             KeyConditionExpression=key_condition,
             FilterExpression='conversation_id = :cid',
             ExpressionAttributeValues={**expr_attr, ':cid': {'S': conversation_id}},
@@ -97,9 +97,9 @@ class Utils:
             'bot_response': {'S': bot_response},
             'timestamp': {'S': timestamp},
         }
-        dynamo_client = boto3.client("dynamodb", region_name=env_vars.AWS_REGION_NAME)
+        dynamo_client = boto3.client("dynamodb", region_name=settings.AWS_REGION)
         dynamo_client.put_item(
-            TableName=env_vars.DYNAMO_TABLE,
+            TableName=settings.DYNAMO_TABLE,
             Item=item,
         )
 
@@ -108,9 +108,9 @@ class Utils:
         """
         Récupère l'historique des messages d'un utilisateur via Query (jamais Scan).
         """
-        dynamo_client = boto3.client("dynamodb", region_name=env_vars.AWS_REGION_NAME)
+        dynamo_client = boto3.client("dynamodb", region_name=settings.AWS_REGION)
         response = dynamo_client.query(
-            TableName=env_vars.DYNAMO_TABLE,
+            TableName=settings.DYNAMO_TABLE,
             KeyConditionExpression='PK = :pk',
             ExpressionAttributeValues={
                 ':pk': {'S': f'USER#{telegram_id}'},
@@ -161,13 +161,13 @@ class Utils:
     @staticmethod
     def get_session():
         return boto3.Session(
-            region_name=env_vars.AWS_REGION_NAME, profile_name=env_vars.AWS_PROFILE
+            region_name=settings.AWS_REGION, profile_name=settings.AWS_PROFILE
         )
 
     @staticmethod
     def insert_data(item):
-        dynamo_client = boto3.client("dynamodb", region_name=env_vars.AWS_REGION_NAME)
+        dynamo_client = boto3.client("dynamodb", region_name=settings.AWS_REGION)
         dynamo_client.put_item(
-            TableName=env_vars.DYNAMO_TABLE,
+            TableName=settings.DYNAMO_TABLE,
             Item=item,
         )
