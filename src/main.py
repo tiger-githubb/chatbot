@@ -1,4 +1,4 @@
-from fastapi import Path
+from fastapi import Path, Request
 from uuid import uuid4
 from fastapi import FastAPI, Body, HTTPException
 from pydantic import BaseModel
@@ -8,10 +8,8 @@ from mangum import Mangum
 import json, boto3
 from mistralai.client import MistralClient
 
-from .config import env_vars
-
-
-from .utils import Utils
+from config import settings
+from utils import Utils
 
 class ConversationMessageIn(BaseModel):
     telegram_id: str
@@ -26,7 +24,7 @@ class ConversationMessageOut(BaseModel):
     bot_response: str
     timestamp: str
 
-api_key = env_vars.MISTRAL_API_KEY
+api_key = settings.MISTRAL_API_KEY
 if not api_key or api_key.strip() == "":
     raise RuntimeError("MISTRAL_API_KEY is missing or empty. Please set it in your environment variables or .env file.")
 model = "mistral-small-latest"
@@ -198,6 +196,20 @@ async def get_last_active_conversation(telegram_id: str):
         return {"conversation_id": conversation_id}
     else:
         return {"conversation_id": None}
+
+# --- Telegram Webhook Endpoint ---
+@app.post(settings.TELEGRAM_WEBHOOK_PATH)
+async def telegram_webhook(request_data: dict = Body(...)):
+    """
+    Endpoint pour recevoir les mises à jour de Telegram via webhook
+    """
+    try:
+        from .telegram_bot import telegram_bot
+        await telegram_bot.handle_update(request_data)
+        return {"status": "ok"}
+    except Exception as e:
+        Utils.log_error(f"Erreur lors du traitement du webhook Telegram: {str(e)}")
+        raise HTTPException(status_code=500, detail="Erreur lors du traitement du webhook")
 
 
 
