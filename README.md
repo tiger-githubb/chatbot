@@ -1,159 +1,294 @@
-# ChatBot Project
+# 🤖 Telegram AI Chatbot
 
-A serverless AI-powered chatbot application built with FastAPI and Mistral AI, deployed to AWS Lambda using SAM.
+Un chatbot Telegram intelligent alimenté par Mistral AI, construit avec FastAPI et déployable sur AWS Lambda.
 
-## Overview
+## 🎯 MVP Fonctionnel
 
-This project implements a conversational chatbot that leverages the Mistral AI API for natural language processing. The application is designed as a serverless solution that runs on AWS Lambda and uses DynamoDB for conversation history storage.
+**✅ Le chatbot est opérationnel !** Il peut :
 
-## Features
+- 💬 Recevoir des messages sur Telegram
+- 🧠 Générer des réponses intelligentes avec Mistral AI
+- 🔄 Maintenir des conversations contextuelles
+- 🚀 Fonctionner en mode local (polling) ou webhook
 
-- **AI-Powered Responses**: Integrates with Mistral AI to generate intelligent responses
-- **Conversation Management**: Tracks conversations with unique IDs and maintains conversation history
-- **RESTful API**: Complete API for chat interactions and conversation management
-- **Serverless Architecture**: Deployed as AWS Lambda function
-- **CI/CD Pipeline**: Automated testing and deployment with Jenkins
+## 📋 Fonctionnalités
 
-## Architecture
+### 🤖 Intelligence Artificielle
 
-- **API Layer**: FastAPI application with Mangum adapter for AWS Lambda
-- **AI Integration**: Mistral AI client for generating responses
-- **Data Storage**: DynamoDB for storing conversation history
-- **Infrastructure**: AWS SAM template for CloudFormation deployment
+- **Mistral AI** : Génération de réponses naturelles et contextuelles
+- **Gestion des conversations** : Historique et contexte préservés
+- **Commandes Telegram** : `/start`, `/help`, `/close`
 
-## Prerequisites
+### 🔧 Architecture Technique
 
-- Python 3.12+
-- AWS CLI configured with appropriate permissions
-- AWS SAM CLI
-- Mistral AI API key
+- **FastAPI** : API REST moderne et performante
+- **Telegram Bot API** : Intégration native avec Telegram
+- **DynamoDB** : Stockage des conversations (optionnel)
+- **AWS Lambda** : Déploiement serverless (optionnel)
 
-## Setup
+### 📊 Modes de Fonctionnement
 
-1. Clone the repository:
+- **Mode Local** : Polling pour développement et tests
+- **Mode Webhook** : Production avec ngrok ou serveur public
+- **Mode AWS** : Déploiement serverless complet
 
-   ```
-   git clone <repository-url>
-   cd chatbot
-   ```
+## 🚀 Démarrage Rapide
 
-2. Create and activate a virtual environment:
+### 1. Prérequis
 
-   ```
-   make venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   ```
+```bash
+# Python 3.12+
+python --version
 
-3. Install dependencies:
-
-   ```
-   make install
-   ```
-
-4. Create a `.env` file with the following variables:
-   ```
-   ENV_NAME=local
-   AWS_REGION_NAME=eu-west-3
-   DYNAMO_TABLE=your-dynamo-table-name
-   AWS_PROFILE=your-aws-profile
-   MISTRAL_API_KEY=your-mistral-api-key
-   ```
-
-## Development
-
-### Running locally
-
-Start the API locally with:
-
-```
-make serve
+# Dépendances système
+pip install --upgrade pip
 ```
 
-Or using SAM local:
+### 2. Installation
+
+```bash
+# Cloner le projet
+git clone <repository-url>
+cd chatbot
+
+# Installer les dépendances
+pip install -r requirements.txt
+
+# Installer en mode développement
+pip install -e .
+```
+
+### 3. Configuration
+
+Créez un fichier `.env` à partir de `.env.example` :
+
+```bash
+# Copier le template
+cp .env.example .env
+```
+
+Configurez vos clés API dans `.env` :
+
+```env
+# Configuration essentielle pour le MVP
+ENV_NAME=local
+MISTRAL_API_KEY=your_mistral_api_key_here
+TELEGRAM_BOT_TOKEN=your_telegram_bot_token_here
+
+# Configuration AWS (optionnelle pour le mode local)
+AWS_REGION=eu-west-3
+DYNAMO_TABLE=chatbot-dbtable-yourname
+AWS_PROFILE=your_aws_profile
+
+# Configuration webhook (optionnelle)
+TELEGRAM_WEBHOOK_URL=https://your-domain.com
+TELEGRAM_WEBHOOK_PATH=/telegram/webhook
+API_URL=http://localhost:8001
+```
+
+### 4. Test du MVP
+
+```bash
+# Vérifier que tout fonctionne
+python test_mvp.py
+
+# Démarrer l'API
+cd src
+python -m uvicorn main:app --host 0.0.0.0 --port 8001 --reload
+
+# Dans un autre terminal : Tester le bot
+python test_bot_local.py
+```
+
+## 🛠️ Utilisation
+
+### Mode Développement Local
+
+1. **Démarrer l'API** (Terminal 1) :
+
+```bash
+cd src
+python -m uvicorn main:app --host 0.0.0.0 --port 8001 --reload
+```
+
+2. **Tester le bot** (Terminal 2) :
+
+```bash
+python test_bot_local.py
+```
+
+3. **Ouvrir Telegram** et parler avec votre bot !
+
+### Mode Production (Webhook)
+
+```bash
+# Installer ngrok pour exposer l'API localement
+# Télécharger depuis : https://ngrok.com/download
+
+# Exposer l'API
+ngrok http 8001
+
+# Configurer le webhook Telegram avec l'URL ngrok
+# Le webhook sera automatiquement configuré
+```
+
+## 📚 API Endpoints
+
+### Chat Principal
+
+- `GET /chat?question=<question>` - Envoyer une question au bot
+- `GET /` - Documentation interactive (Swagger UI)
+
+### Gestion des Conversations
+
+- `POST /conversation/start` - Démarrer une nouvelle conversation
+- `GET /conversation/active/{telegram_id}` - Conversation active d'un utilisateur
+- `GET /conversation/history/{telegram_id}` - Historique des conversations
+- `POST /conversation/message` - Sauvegarder un message
+- `POST /conversation/{conversation_id}/close` - Fermer une conversation
+
+### Webhook Telegram
+
+- `POST /telegram/webhook` - Endpoint pour les mises à jour Telegram
+
+## 🧪 Tests
+
+```bash
+# Test complet du MVP
+python test_mvp.py
+
+# Test du bot en mode polling
+python test_bot_local.py
+
+# Test API simple
+python test_api_simple.py
+
+# Tests unitaires
+python -m pytest tests/
+```
+
+## 📁 Structure du Projet
 
 ```
-make deploy-local
+chatbot/
+├── 📄 README.md              # Documentation principale
+├── 📄 .env.example           # Template de configuration
+├── 📄 requirements.txt       # Dépendances Python
+├── 📄 setup.py              # Configuration du package
+├── 📁 src/                   # Code source principal
+│   ├── 🐍 main.py           # API FastAPI
+│   ├── 🐍 telegram_bot.py   # Bot Telegram
+│   ├── 🐍 config.py         # Configuration
+│   └── 🐍 utils.py          # Utilitaires
+├── 📁 tests/                 # Tests unitaires
+├── 📁 infrastructure/        # Templates AWS SAM
+├── 📄 test_mvp.py           # Test d'intégration MVP
+├── 📄 test_bot_local.py     # Test bot en polling
+└── 📄 Makefile              # Automatisation
 ```
 
-### Testing
+## 🚀 Déploiement AWS (Optionnel)
 
-Run unit tests:
+### Prérequis AWS
 
+```bash
+# AWS CLI
+aws configure
+
+# SAM CLI
+sam --version
 ```
-make test
-```
 
-## Deployment
+### Commandes de Déploiement
 
-### Building the application
-
-Build the SAM application:
-
-```
+```bash
+# Construction
 make build
-```
 
-### Deploying to AWS
-
-Deploy to AWS environment:
-
-```
+# Déploiement
 make deploy env=dev
-```
 
-Available environments:
-
-- `aristidekarbou`
-- `dev`
-- `dev-branch`
-
-### Testing deployed endpoint
-
-After deployment, you can test the endpoint with:
-
-```
+# Test de l'endpoint déployé
 make test-endpoint env=dev
 ```
 
-## API Endpoints
+## 🔧 Configuration Avancée
 
-- `GET /`: Redirects to API documentation
-- `GET /chat?question=<question>`: Send a question to the chatbot
-- `POST /conversation/start`: Start a new conversation
-- `GET /conversation/{conversation_id}/history`: Get conversation history
-- `POST /conversation/message`: Save a conversation message
-- `GET /conversation/history/{telegram_id}`: Get user conversation history
-- `POST /conversation/{conversation_id}/close`: Close a conversation
-- `GET /conversation/active/{telegram_id}`: Get user's last active conversation
+### Variables d'Environnement
 
-## CI/CD Pipeline
+| Variable             | Description           | Requis | Défaut                  |
+| -------------------- | --------------------- | ------ | ----------------------- |
+| `MISTRAL_API_KEY`    | Clé API Mistral AI    | ✅     | -                       |
+| `TELEGRAM_BOT_TOKEN` | Token du bot Telegram | ✅     | -                       |
+| `API_URL`            | URL de l'API locale   | ❌     | `http://localhost:8001` |
+| `AWS_REGION`         | Région AWS            | ❌     | `eu-west-3`             |
+| `DYNAMO_TABLE`       | Table DynamoDB        | ❌     | -                       |
 
-The project includes a Jenkins pipeline that:
+### Commandes Telegram Disponibles
 
-1. Sets up the environment
-2. Injects environment variables
-3. Runs unit tests
-4. Builds the application
-5. Deploys to AWS
-6. Tests the deployed endpoint
+| Commande | Description                        |
+| -------- | ---------------------------------- |
+| `/start` | Démarrer une nouvelle conversation |
+| `/help`  | Afficher l'aide                    |
+| `/close` | Fermer la conversation active      |
 
-## Project Structure
+## 🐛 Dépannage
 
-```
-.
-├── .env                  # Environment variables (not in git)
-├── Jenkinsfile           # CI/CD pipeline definition
-├── Makefile              # Build automation
-├── infrastructure/       # AWS SAM templates
-│   └── template.yaml     # CloudFormation template
-├── src/                  # Application source code
-│   ├── config.py         # Configuration management
-│   ├── main.py           # FastAPI application
-│   └── utils.py          # Utility functions
-└── tests/                # Unit tests
-    └── test_main.py      # API tests
+### Problèmes Courants
+
+1. **Erreurs d'import** :
+
+```bash
+# Réinstaller en mode développement
+pip install -e .
 ```
 
-## License
+2. **Bot ne répond pas** :
 
-This project is created for educational purposes.
+```bash
+# Vérifier que l'API tourne sur le bon port
+curl http://localhost:8001/
+```
+
+3. **Erreur Mistral AI** :
+
+```bash
+# Vérifier la clé API
+python -c "from config import settings; print(settings.MISTRAL_API_KEY[:10] + '...')"
+```
+
+### Logs de Debug
+
+```bash
+# Voir les logs de l'API
+cd src
+python -m uvicorn main:app --log-level debug
+
+# Voir les logs du bot
+python test_bot_local.py
+```
+
+## 🤝 Contribution
+
+1. Fork le projet
+2. Créer une branche feature (`git checkout -b feature/AmazingFeature`)
+3. Commit les changements (`git commit -m 'Add some AmazingFeature'`)
+4. Push vers la branche (`git push origin feature/AmazingFeature`)
+5. Ouvrir une Pull Request
+
+## 📄 Licence
+
+Ce projet est créé à des fins éducatives.
+
+## 🏆 État du Projet
+
+- ✅ **MVP Fonctionnel** - Bot répond intelligemment
+- ✅ **Intégration Mistral AI** - Réponses contextuelles
+- ✅ **Commandes Telegram** - Interface utilisateur complète
+- ✅ **Mode Local** - Développement et tests
+- 🔄 **Mode Webhook** - En cours (nécessite ngrok)
+- 🔄 **Déploiement AWS** - Prêt (nécessite credentials)
+
+---
+
+**🎉 Le chatbot est prêt à utiliser ! Démarrez avec `python test_mvp.py` puis `python test_bot_local.py`**
