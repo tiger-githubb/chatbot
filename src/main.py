@@ -76,6 +76,12 @@ async def chat(question: str):
             ]
         )
         print("chat_response:", chat_response)
+        
+        # Format simple pour le mode local (sans DynamoDB)
+        answer_content = ""
+        if hasattr(chat_response, 'choices') and chat_response.choices:
+            answer_content = getattr(chat_response.choices[0].message, 'content', 'no_content')
+        
         response = {
             "id": {
                 "S": f"{getattr(chat_response, 'id', 'no_id')}",
@@ -84,10 +90,14 @@ async def chat(question: str):
                 "S": f"{question}",
             },
             "answer": {
-                "S": f"{getattr(chat_response.choices[0].message, 'content', 'no_content') if hasattr(chat_response, 'choices') and chat_response.choices else 'no_choices'}",
+                "S": answer_content,
             }
         }
-        Utils.insert_data(response)
+        
+        # Temporairement désactivé pour le mode local
+        # Utils.insert_data(response)
+        print(f"Mode local - Réponse générée: {answer_content}")
+        
         return response
     except Exception as e:
         import traceback
@@ -108,8 +118,11 @@ class ConversationStartOut(BaseModel):
 async def start_conversation(data: ConversationStartIn):
     """
     Démarre une nouvelle conversation pour un utilisateur et retourne un conversation_id unique.
+    Mode local - génère un ID simple sans stockage DynamoDB.
     """
-    conversation_id = Utils.start_conversation(data.telegram_id)
+    # Mode local - génération d'un ID simple
+    conversation_id = f"conv_{data.telegram_id}_{uuid4().hex[:8]}"
+    print(f"Mode local - Nouvelle conversation: {conversation_id}")
     return {"conversation_id": conversation_id}
 
 # 2. Récupérer l'historique d'une conversation précise
@@ -117,19 +130,14 @@ async def start_conversation(data: ConversationStartIn):
 async def get_conversation_history_by_id(conversation_id: str = Path(...), telegram_id: str = None, limit: int = 50):
     """
     Récupère l'historique des messages pour un conversation_id donné (optionnellement filtré par telegram_id).
+    Mode local - retourne un historique vide.
     """
     if not telegram_id:
         raise HTTPException(status_code=400, detail="telegram_id est requis pour la requête.")
-    items = Utils.get_conversation_history_by_id(conversation_id, telegram_id, limit)
-    history = []
-    for item in items:
-        history.append({
-            "conversation_id": item.get("conversation_id", {}).get("S", ""),
-            "user_message": item.get("user_message", {}).get("S", ""),
-            "bot_response": item.get("bot_response", {}).get("S", ""),
-            "timestamp": item.get("timestamp", {}).get("S", ""),
-        })
-    return {"history": history}
+    
+    # Mode local - retourne un historique vide
+    print(f"Mode local - Historique demandé pour conversation: {conversation_id}")
+    return {"history": []}
 
 
 # --- Conversation Endpoints (placés après la création de app) ---
@@ -137,15 +145,15 @@ async def get_conversation_history_by_id(conversation_id: str = Path(...), teleg
 async def save_conversation_message(data: ConversationMessageIn):
     """
     Enregistre un message utilisateur + réponse bot dans DynamoDB.
+    Mode local - affiche seulement dans les logs.
     """
     try:
-        Utils.save_conversation_message(
-            telegram_id=data.telegram_id,
-            conversation_id=data.conversation_id,
-            user_message=data.user_message,
-            bot_response=data.bot_response,
-            timestamp=data.timestamp
-        )
+        # Mode local - juste afficher dans les logs
+        print(f"Mode local - Message sauvegardé:")
+        print(f"  User: {data.telegram_id}")
+        print(f"  Conversation: {data.conversation_id}")
+        print(f"  Message: {data.user_message}")
+        print(f"  Réponse: {data.bot_response}")
         return {"status": "success"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -154,19 +162,12 @@ async def save_conversation_message(data: ConversationMessageIn):
 async def get_conversation_history(telegram_id: str, limit: int = 20):
     """
     Récupère l'historique des messages pour un utilisateur (par son Telegram ID).
+    Mode local - retourne un historique vide.
     """
     try:
-        items = Utils.get_conversation_history(telegram_id, limit)
-        # Convert DynamoDB format to plain dict
-        history = []
-        for item in items:
-            history.append({
-                "conversation_id": item.get("conversation_id", {}).get("S", ""),
-                "user_message": item.get("user_message", {}).get("S", ""),
-                "bot_response": item.get("bot_response", {}).get("S", ""),
-                "timestamp": item.get("timestamp", {}).get("S", ""),
-            })
-        return {"history": history}
+        # Mode local - retourne un historique vide
+        print(f"Mode local - Historique demandé pour utilisateur: {telegram_id}")
+        return {"history": []}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -178,9 +179,11 @@ class ConversationCloseIn(BaseModel):
 async def close_conversation(conversation_id: str = Path(...), data: ConversationCloseIn = Body(...)):
     """
     Clôture une conversation (status=closed pour tous les messages de cette conversation).
+    Mode local - affiche seulement dans les logs.
     """
     try:
-        Utils.close_conversation(conversation_id, data.telegram_id)
+        # Mode local - juste afficher dans les logs
+        print(f"Mode local - Conversation fermée: {conversation_id} pour utilisateur: {data.telegram_id}")
         return {"status": "closed"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -190,12 +193,11 @@ async def close_conversation(conversation_id: str = Path(...), data: Conversatio
 async def get_last_active_conversation(telegram_id: str):
     """
     Retourne le dernier conversation_id actif (non clos) pour un utilisateur.
+    Mode local - retourne toujours None pour créer une nouvelle conversation.
     """
-    conversation_id = Utils.get_last_active_conversation(telegram_id)
-    if conversation_id:
-        return {"conversation_id": conversation_id}
-    else:
-        return {"conversation_id": None}
+    # Mode local - retourne toujours None pour forcer la création d'une nouvelle conversation
+    print(f"Mode local - Conversation active demandée pour: {telegram_id}")
+    return {"conversation_id": None}
 
 # --- Telegram Webhook Endpoint ---
 @app.post(settings.TELEGRAM_WEBHOOK_PATH)
@@ -204,7 +206,7 @@ async def telegram_webhook(request_data: dict = Body(...)):
     Endpoint pour recevoir les mises à jour de Telegram via webhook
     """
     try:
-        from .telegram_bot import telegram_bot
+        from telegram_bot import telegram_bot
         await telegram_bot.handle_update(request_data)
         return {"status": "ok"}
     except Exception as e:
