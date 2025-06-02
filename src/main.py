@@ -7,6 +7,7 @@ from contextlib import asynccontextmanager
 from mangum import Mangum
 import json, boto3
 from mistralai.client import MistralClient
+import os
 
 from config import settings
 from utils import Utils
@@ -201,16 +202,42 @@ async def get_last_active_conversation(telegram_id: str):
 
 # --- Telegram Webhook Endpoint ---
 @app.post(settings.TELEGRAM_WEBHOOK_PATH)
-async def telegram_webhook(request_data: dict = Body(...)):
+async def telegram_webhook(request: Request):
     """
     Endpoint pour recevoir les mises à jour de Telegram via webhook
     """
     try:
-        from telegram_bot import telegram_bot
-        await telegram_bot.handle_update(request_data)
+        # Récupération et validation des données
+        update_data = await request.json()
+        
+        # Log de debug (masquer les données sensibles en production)
+        if settings.ENV_NAME != "production":
+            Utils.log_info(f"Webhook reçu: {update_data}")
+        else:
+            Utils.log_info("Webhook reçu (données masquées en production)")        # Import du bot Telegram et traitement de la mise à jour
+        from telegram_bot import TelegramBot
+        
+        # Créer une instance si nécessaire ou utiliser l'instance globale
+        try:
+            from telegram_bot import telegram_bot
+            bot_instance = telegram_bot
+        except ImportError:
+            bot_instance = TelegramBot()
+          # Traitement de la mise à jour en arrière-plan pour éviter les timeouts
+        import asyncio
+        # Créer une tâche asynchrone pour traiter l'update sans bloquer la réponse
+        asyncio.create_task(bot_instance.handle_update(update_data))
+        
+        Utils.log_info("Webhook accepté - traitement en cours en arrière-plan")
         return {"status": "ok"}
+        
+    except ValueError as e:
+        Utils.log_error(f"Données JSON invalides dans le webhook: {str(e)}")
+        raise HTTPException(status_code=400, detail="Données JSON invalides")
     except Exception as e:
         Utils.log_error(f"Erreur lors du traitement du webhook Telegram: {str(e)}")
+        import traceback
+        Utils.log_error(f"Traceback: {traceback.format_exc()}")
         raise HTTPException(status_code=500, detail="Erreur lors du traitement du webhook")
 
 
