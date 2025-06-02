@@ -24,7 +24,7 @@ Un chatbot Telegram intelligent alimenté par Mistral AI, construit avec FastAPI
 🌐 Telegram API
     ↓
 🔗 ngrok (tunnel public)
-    ↓  
+    ↓
 🚀 FastAPI Server (localhost:8001)
     ↓
 🤖 TelegramBot (async webhook)
@@ -34,17 +34,17 @@ Un chatbot Telegram intelligent alimenté par Mistral AI, construit avec FastAPI
 
 ### 🔧 **Services de Production**
 
-| Service          | Status        | Port | URL |
-| ---------------- | ------------- | ---- | --- |
-| FastAPI Server   | 🟢 ACTIF      | 8001 | `http://localhost:8001` |
-| ngrok Tunnel     | 🟢 ACTIF      | 4040 | `https://1d8c-102-64-172-180.ngrok-free.app` |
-| Telegram Webhook | 🟢 CONFIGURÉ  | -    | `/telegram/webhook` |
-| API Documentation| 🟢 DISPONIBLE | -    | `/docs` |
+| Service           | Status        | Port | URL                                          |
+| ----------------- | ------------- | ---- | -------------------------------------------- |
+| FastAPI Server    | 🟢 ACTIF      | 8001 | `http://localhost:8001`                      |
+| ngrok Tunnel      | 🟢 ACTIF      | 4040 | `https://1d8c-102-64-172-180.ngrok-free.app` |
+| Telegram Webhook  | 🟢 CONFIGURÉ  | -    | `/telegram/webhook`                          |
+| API Documentation | 🟢 DISPONIBLE | -    | `/docs`                                      |
 
 ### ✅ **Fonctionnalités Validées**
 
 - **Commandes Telegram** : `/start`, `/help` - Réponses instantanées
-- **Messages Normaux** : Traitement par Mistral AI - Réponses intelligentes  
+- **Messages Normaux** : Traitement par Mistral AI - Réponses intelligentes
 - **Performance** : Temps de réponse < 1 seconde
 - **Stabilité** : Aucun timeout, 100% uptime en test
 - **Architecture** : Async/await pour traitement non-bloquant
@@ -111,7 +111,7 @@ Le système est configuré et validé en mode webhook production :
 cd src
 python -m uvicorn main:app --host 0.0.0.0 --port 8001 --reload
 
-# Terminal 2 : Tunnel ngrok  
+# Terminal 2 : Tunnel ngrok
 cd ../ngrok
 ./ngrok.exe http 8001
 
@@ -129,11 +129,11 @@ python set_webhook.py
 
 ### **Commandes Telegram Disponibles** 📱
 
-| Commande | Description | Status |
-| -------- | ----------- | ------ |
-| `/start` | Démarrer une conversation | ✅ Testé |
-| `/help`  | Afficher l'aide | ✅ Testé |
-| Messages normaux | Réponses Mistral AI | ✅ Testé |
+| Commande         | Description               | Status   |
+| ---------------- | ------------------------- | -------- |
+| `/start`         | Démarrer une conversation | ✅ Testé |
+| `/help`          | Afficher l'aide           | ✅ Testé |
+| Messages normaux | Réponses Mistral AI       | ✅ Testé |
 
 ## 📚 API Endpoints
 
@@ -247,21 +247,21 @@ make test-endpoint env=dev
 
 ### **Variables d'Environnement (Configurées)** ✅
 
-| Variable             | Description           | Status | Valeur Actuelle |
-| -------------------- | --------------------- | ------ | --------------- |
-| `MISTRAL_API_KEY`    | Clé API Mistral AI    | ✅ OK  | Configurée      |
-| `TELEGRAM_BOT_TOKEN` | Token du bot Telegram | ✅ OK  | Configurée      |
-| `TELEGRAM_WEBHOOK_URL` | URL publique ngrok  | ✅ OK  | `https://1d8c-*` |
-| `API_URL`            | URL de l'API locale   | ✅ OK  | `localhost:8001` |
-| `ENV_NAME`           | Environnement         | ✅ OK  | `production`     |
+| Variable               | Description           | Status | Valeur Actuelle  |
+| ---------------------- | --------------------- | ------ | ---------------- |
+| `MISTRAL_API_KEY`      | Clé API Mistral AI    | ✅ OK  | Configurée       |
+| `TELEGRAM_BOT_TOKEN`   | Token du bot Telegram | ✅ OK  | Configurée       |
+| `TELEGRAM_WEBHOOK_URL` | URL publique ngrok    | ✅ OK  | `https://1d8c-*` |
+| `API_URL`              | URL de l'API locale   | ✅ OK  | `localhost:8001` |
+| `ENV_NAME`             | Environnement         | ✅ OK  | `production`     |
 
 ### **Ports et Services** 🌐
 
-| Service          | Port | Status    | URL |
-| ---------------- | ---- | --------- | --- |
-| FastAPI Server   | 8001 | 🟢 ACTIF  | `http://localhost:8001` |
-| ngrok Dashboard  | 4040 | 🟢 ACTIF  | `http://127.0.0.1:4040` |
-| Telegram Webhook | -    | 🟢 CONFIGURÉ | `/telegram/webhook` |
+| Service          | Port | Status       | URL                     |
+| ---------------- | ---- | ------------ | ----------------------- |
+| FastAPI Server   | 8001 | 🟢 ACTIF     | `http://localhost:8001` |
+| ngrok Dashboard  | 4040 | 🟢 ACTIF     | `http://127.0.0.1:4040` |
+| Telegram Webhook | -    | 🟢 CONFIGURÉ | `/telegram/webhook`     |
 
 ## 🚨 **Arrêt et Redémarrage des Services**
 
@@ -317,13 +317,13 @@ curl http://127.0.0.1:4040/api/tunnels
 
 ### **📊 Métriques de Production**
 
-| Métrique | Résultat |
-|----------|----------|
-| **Temps de développement** | 2 jours (comme prévu) |
-| **Uptime en test** | 100% |
-| **Temps de réponse** | < 1 seconde |
-| **Taux d'erreur** | 0% pour opérations normales |
-| **Satisfaction utilisateur** | ✅ Confirmée par tests |
+| Métrique                     | Résultat                    |
+| ---------------------------- | --------------------------- |
+| **Temps de développement**   | 2 jours (comme prévu)       |
+| **Uptime en test**           | 100%                        |
+| **Temps de réponse**         | < 1 seconde                 |
+| **Taux d'erreur**            | 0% pour opérations normales |
+| **Satisfaction utilisateur** | ✅ Confirmée par tests      |
 
 ### **🎯 Prochaines Étapes Possibles (Optionnel)**
 
@@ -336,5 +336,5 @@ curl http://127.0.0.1:4040/api/tunnels
 
 ## 🎉 **LE CHATBOT EST PRÊT POUR LA PRODUCTION !**
 
-**Le projet répond à tous les objectifs MVP et fonctionne parfaitement en production.** 
+**Le projet répond à tous les objectifs MVP et fonctionne parfaitement en production.**
 Utilisez les commandes d'arrêt/redémarrage ci-dessus pour gérer le système.
