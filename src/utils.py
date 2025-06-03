@@ -6,7 +6,7 @@ from typing import List, Optional, Any
 
 import boto3
 
-from config import settings
+from src.config import settings
 ## Simple edit
 
 

@@ -6,11 +6,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from mangum import Mangum
 import json, boto3
+import asyncio
+import traceback
 from mistralai.client import MistralClient
 import os
 
-from config import settings
-from utils import Utils
+from src.config import settings
+from src.utils import Utils
 
 class ConversationMessageIn(BaseModel):
     telegram_id: str
@@ -232,22 +234,19 @@ async def telegram_webhook(request: Request):
     try:
         # Récupération et validation des données
         update_data = await request.json()
-        
-        # Log de debug (masquer les données sensibles en production)
+          # Log de debug (masquer les données sensibles en production)
         if settings.ENV_NAME != "production":
             Utils.log_info(f"Webhook reçu: {update_data}")
         else:
-            Utils.log_info("Webhook reçu (données masquées en production)")        # Import du bot Telegram et traitement de la mise à jour
-        from telegram_bot import TelegramBot
+            Utils.log_info("Webhook reçu (données masquées en production)")
         
-        # Créer une instance si nécessaire ou utiliser l'instance globale
-        try:
-            from telegram_bot import telegram_bot
-            bot_instance = telegram_bot
-        except ImportError:
-            bot_instance = TelegramBot()
-          # Traitement de la mise à jour en arrière-plan pour éviter les timeouts
-        import asyncio
+        # Import du bot Telegram et traitement de la mise à jour
+        from src.telegram_bot import TelegramBot, telegram_bot
+        
+        # Utiliser l'instance globale du bot
+        bot_instance = telegram_bot
+        
+        # Traitement de la mise à jour en arrière-plan pour éviter les timeouts
         # Créer une tâche asynchrone pour traiter l'update sans bloquer la réponse
         asyncio.create_task(bot_instance.handle_update(update_data))
         
