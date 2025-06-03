@@ -5,7 +5,11 @@ Test simple de l'API sans Telegram
 
 import requests
 import json
+import pytest
+import os
 
+@pytest.mark.skipif(os.environ.get('CI') == 'true',
+                   reason="Test ignoré dans l'environnement CI - nécessite API locale")
 def test_chat_api():
     """Test l'endpoint /chat directement"""
     print("🧪 Test de l'API /chat...")
@@ -40,6 +44,8 @@ def test_chat_api():
     
     return True
 
+@pytest.mark.skipif(os.environ.get('CI') == 'true',
+                   reason="Test ignoré dans l'environnement CI - nécessite API locale")
 def test_conversation_endpoints():
     """Test les endpoints de conversation"""
     print("🧪 Test des endpoints de conversation...")
