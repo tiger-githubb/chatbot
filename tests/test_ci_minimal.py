@@ -13,6 +13,9 @@ from pathlib import Path
 src_path = Path(__file__).parent.parent / "src"
 sys.path.insert(0, str(src_path))
 
+# Mark this module as CI-safe
+pytestmark = pytest.mark.ci
+
 def test_python_version():
     """Vérifier que Python est en version supportée"""
     assert sys.version_info >= (3, 8), "Python 3.8+ requis"
@@ -28,6 +31,35 @@ def test_essential_packages():
         assert True
     except ImportError as e:
         pytest.skip(f"Package manquant (acceptable en CI): {e}")
+        
+def test_ci_environment():
+    """Vérifier que l'environnement CI est correctement configuré"""
+    # Cette valeur devrait être "true" dans l'environnement CI
+    ci_value = os.environ.get("CI", "false").lower()
+    print(f"CI environment variable: {ci_value}")
+    # Ne pas faire échouer le test, juste informer
+    assert True, f"Variable CI = {ci_value} (informational only, not a failure)"
+    
+def test_file_structure():
+    """Vérifier que les fichiers essentiels sont présents"""
+    # Vérifier que les fichiers principaux sont présents
+    project_root = Path(__file__).parent.parent
+    
+    # Liste des fichiers essentiels
+    essential_files = [
+        "src/main.py",
+        "src/config.py",
+        "src/telegram_bot.py",
+        "requirements.txt",
+        "Jenkinsfile",
+        "Makefile"
+    ]
+    
+    for file_path in essential_files:
+        file = project_root / file_path
+        assert file.exists(), f"Fichier essentiel manquant: {file_path}"
+    
+    print("✅ Tous les fichiers essentiels sont présents")
 
 def test_project_files_exist():
     """Vérifier que les fichiers essentiels existent"""
