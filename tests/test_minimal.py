@@ -69,7 +69,8 @@ class TestApplicationStructure:
             from telegram_bot import TelegramBot
             # Juste vérifier que la classe existe et a les bonnes méthodes
             assert hasattr(TelegramBot, '__init__')
-            assert hasattr(TelegramBot, 'handle_update')        except Exception as e:
+            assert hasattr(TelegramBot, 'handle_update')
+        except Exception as e:
             pytest.fail(f"Erreur de structure du bot Telegram: {e}")
     
     def test_api_endpoints_defined(self):

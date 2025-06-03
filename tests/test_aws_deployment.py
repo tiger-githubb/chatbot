@@ -10,7 +10,7 @@ from urllib.parse import urljoin
 
 def test_aws_deployment():
     """Test que l'API AWS est accessible et fonctionne"""
-      # URL de base AWS - URL fournie pour le déploiement
+    # URL de base AWS - URL fournie pour le déploiement
     base_url = "https://hky4t9y1fh.execute-api.eu-west-3.amazonaws.com/"
     
     print(f"🧪 Test de déploiement AWS: {base_url}")
@@ -27,7 +27,7 @@ def test_aws_deployment():
             
     except Exception as e:
         print(f"❌ Erreur root endpoint: {e}")
-        return False
+        assert False, f"Root endpoint failed: {e}"
     
     # Test 2: Chat endpoint
     try:
@@ -50,7 +50,7 @@ def test_aws_deployment():
             
     except Exception as e:
         print(f"❌ Erreur chat endpoint: {e}")
-        return False
+        assert False, f"Chat endpoint failed: {e}"
     
     # Test 3: Documentation endpoint
     try:
@@ -67,7 +67,7 @@ def test_aws_deployment():
         print(f"❌ Erreur docs endpoint: {e}")
     
     print("🎉 Test de déploiement AWS terminé")
-    return True
+    assert True  # Test passed
 
 def test_webhook_endpoint():
     """Test que l'endpoint webhook est accessible (sans envoyer de données)"""
