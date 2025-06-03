@@ -15,18 +15,21 @@ pipeline {
         stage('Initialisation') {
             steps {
                 sh "echo Branch name ${BRANCH_NAME}"
-                sh "make venv && make install  "
+                sh "make venv && make install"
             }
         }
-    stage('Environnement variable injection'){
+
+        stage('Environnement variable injection') {
             steps {
-                script{
+                script {
                     withCredentials([file(credentialsId: 'aristidekarbou-chatbot-env-file', variable: 'ENV_FILE')]) {
                         sh "cat ${ENV_FILE} > .env"
                     }
                 }
             }
-        }        stage('Tests Unitaires') {
+        }
+
+        stage('Tests Unitaires') {
             steps {
                 script {
                     echo "Running minimal CI tests..."
@@ -43,7 +46,9 @@ pipeline {
                     sh "make build"
                 }
             }
-        }        stage('Deploy') {
+        }
+
+        stage('Deploy') {
             steps {
                 script {
                     echo "Deploying the project to AWS..."
@@ -61,7 +66,7 @@ pipeline {
             }
         }
 
-        stage('Test endpoint'){
+        stage('Test endpoint') {
             steps {
                 script {
                     // Add your endpoint testing commands here
@@ -96,5 +101,4 @@ pipeline {
             }
         }
     }
-
 }
