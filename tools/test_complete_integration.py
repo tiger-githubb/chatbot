@@ -41,14 +41,14 @@ def test_api_integration():
         
         if success:
             print("✅ API → DynamoDB integration PASSED!")
-            return True
+            assert True
         else:
             print("❌ API → DynamoDB integration FAILED!")
-            return False
+            assert False, "Échec de l'insertion du message dans DynamoDB"
             
     except Exception as e:
         print(f"❌ API integration test failed: {e}")
-        return False
+        assert False, f"Exception lors du test d'intégration API: {e}"
 
 def test_telegram_integration():
     """Test the Telegram integration with DynamoDB"""
@@ -73,14 +73,14 @@ def test_telegram_integration():
         
         if success:
             print("✅ Telegram → DynamoDB integration PASSED!")
-            return True
+            assert True
         else:
             print("❌ Telegram → DynamoDB integration FAILED!")
-            return False
+            assert False, "Échec de l'insertion du message Telegram dans DynamoDB"
             
     except Exception as e:
         print(f"❌ Telegram integration test failed: {e}")
-        return False
+        assert False, f"Exception lors du test d'intégration Telegram: {e}"
 
 def test_data_retrieval():
     """Test retrieving data from DynamoDB using efficient approaches"""
@@ -99,81 +99,20 @@ def test_data_retrieval():
         print("   - Table structure uses 'id' as primary key")
         print("   - Production code uses direct get_item and put_item operations")
         print("   - No scan operations are used in production code")
-        
-        return True
-        
+        assert True
+            
     except Exception as e:
         print(f"❌ Data retrieval test failed: {e}")
-        return False
-        
-        return True
-        
-    except Exception as e:
-        print(f"❌ Data retrieval test failed: {e}")
-        return False
-
-def cleanup_test_data():
-    """Clean up test data from DynamoDB using efficient operations"""
-    print("🧹 Cleaning up test data...")
-    
-    try:
-        client = get_dynamo_client()
-        table_name = settings.DYNAMO_TABLE
-        deleted_count = 0
-        
-        # Since the table uses 'id' as primary key and we know the format of test IDs,
-        # we'll skip cleanup for this test to avoid inefficient operations
-        # In production, cleanup would be handled differently (e.g., TTL attributes)
-        
-        print("✅ Test cleanup skipped (avoiding inefficient scan operations)")
-        print("   - Production uses TTL for automatic cleanup")
-        print("   - Manual cleanup would use known IDs only")
-        print(f"✅ Efficient cleanup strategy confirmed (0 scan operations used)")
-        return True
-        
-    except Exception as e:
-        print(f"❌ Cleanup failed: {e}")
-        return False
-
-def main():
-    """Run all integration tests"""
-    print("🚀 COMPREHENSIVE DYNAMODB INTEGRATION TEST")
-    print("=" * 50)
-    print(f"📅 Date: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-    print(f"🗂️  Table: {settings.DYNAMO_TABLE}")
-    print(f"🌍 Region: {settings.AWS_REGION}")
-    print("=" * 50)
-    
-    tests_passed = 0
-    total_tests = 3
-    
-    # Run tests
-    if test_api_integration():
-        tests_passed += 1
-    
-    if test_telegram_integration():
-        tests_passed += 1
-    
-    if test_data_retrieval():
-        tests_passed += 1
-    
-    # Cleanup
-    cleanup_test_data()
-    
-    # Results
-    print("=" * 50)
-    print(f"📊 RESULTS: {tests_passed}/{total_tests} tests passed")
-    
-    if tests_passed == total_tests:
-        print("🎉 ALL INTEGRATION TESTS PASSED!")
-        print("✅ The DynamoDB integration is fully functional")
-        print("✅ Both API and Telegram endpoints are working")
-        print("✅ Data storage and retrieval are operational")
-        return True
-    else:
-        print("❌ Some tests failed. Please check the integration.")
-        return False
+        assert False, f"Exception lors du test de récupération de données: {e}"
 
 if __name__ == "__main__":
-    success = main()
-    sys.exit(0 if success else 1)
+    print("🚀 Running DynamoDB integration tests")
+    print("=" * 50)
+    
+    # Run tests
+    test_api_integration()
+    test_telegram_integration()
+    test_data_retrieval()
+    
+    print("=" * 50)
+    print("✅ All tests completed!")

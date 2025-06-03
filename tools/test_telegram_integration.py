@@ -32,19 +32,16 @@ def test_integration():
             mistral_id=test_mistral_id
         )
         
-        if success:
-            print("✅ Telegram bot DynamoDB integration test PASSED!")
-            print(f"   - User ID: {test_user_id}")
-            print(f"   - Source: {test_source}")
-            print(f"   - Message saved successfully to DynamoDB")
-            return True
-        else:
-            print("❌ Telegram bot DynamoDB integration test FAILED!")
-            return False
+        assert success, "Échec de l'insertion du message dans DynamoDB"
+        
+        print("✅ Telegram bot DynamoDB integration test PASSED!")
+        print(f"   - User ID: {test_user_id}")
+        print(f"   - Source: {test_source}")
+        print(f"   - Message saved successfully to DynamoDB")
             
     except Exception as e:
         print(f"❌ Integration test failed with error: {e}")
-        return False
+        assert False, f"Exception lors du test d'intégration: {e}"
 
 if __name__ == "__main__":
     test_integration()

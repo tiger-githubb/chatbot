@@ -40,11 +40,11 @@ def test_aws_credentials():
         print(f"   User ID: {response['UserId']}")
         print(f"   Account: {response['Account']}")
         print(f"   ARN: {response['Arn']}")
-        return True
+        assert True
         
     except Exception as e:
         print(f"❌ Erreur avec les credentials AWS: {e}")
-        return False
+        assert False, f"Erreur d'authentification AWS: {e}"
 
 def test_dynamodb_access():
     """Test de l'accès à la table DynamoDB"""
@@ -71,11 +71,11 @@ def test_dynamodb_access():
         print(f"   Nom: {response['Table']['TableName']}")
         print(f"   Clé primaire: {response['Table']['KeySchema']}")
         
-        return True
+        assert True
         
     except Exception as e:
         print(f"❌ Erreur d'accès à la table DynamoDB: {e}")
-        return False
+        assert False, f"Erreur d'accès à la table DynamoDB: {e}"
 
 def test_dynamodb_write_read():
     """Test d'écriture et lecture dans DynamoDB"""
@@ -128,14 +128,15 @@ def test_dynamodb_write_read():
                 Key={'id': {'S': test_id}}
             )
             print(f"✅ Item de test nettoyé")
-            
-        return True
+            assert True
+        else:
+            assert False, "Item non trouvé dans DynamoDB"
         
     except Exception as e:
         print(f"❌ Erreur lors du test d'écriture/lecture: {e}")
-        return False
+        assert False, f"Erreur lors du test d'écriture/lecture: {e}"
 
-def main():
+if __name__ == "__main__":
     """Fonction principale de test"""
     print("🧪 TEST DE CONNEXION DYNAMODB")
     print("=" * 50)
@@ -145,26 +146,10 @@ def main():
     print(f"   AWS_ACCESS_KEY_ID: {'✅ Configuré' if settings.AWS_ACCESS_KEY_ID else '❌ Manquant'}")
     print("=" * 50)
     
-    tests = [
-        test_aws_credentials,
-        test_dynamodb_access,
-        test_dynamodb_write_read
-    ]
+    # Exécuter les tests
+    test_aws_credentials()
+    test_dynamodb_access()
+    test_dynamodb_write_read()
     
-    results = []
-    for test in tests:
-        results.append(test())
-    
-    print("\n" + "=" * 50)
-    if all(results):
-        print("🎉 Tous les tests DynamoDB sont passés !")
-        print("✅ Le système est prêt pour l'intégration DynamoDB")
-        return True
-    else:
-        print("❌ Certains tests ont échoué.")
-        print("🔧 Vérifiez la configuration AWS et les permissions")
-        return False
-
-if __name__ == "__main__":
-    success = main()
-    sys.exit(0 if success else 1)
+    print("=" * 50)
+    print("✅ Tous les tests ont réussi!")

@@ -18,10 +18,10 @@ def test_api_health():
     try:
         response = requests.get(f"{settings.API_URL}/docs")
         print(f"✅ API FastAPI: Status {response.status_code}")
-        return response.status_code == 200
+        assert response.status_code == 200, "API ne répond pas avec succès"
     except Exception as e:
         print(f"❌ API FastAPI: Erreur - {e}")
-        return False
+        assert False, f"Exception lors de l'accès à l'API: {e}"
 
 def test_webhook_endpoint():
     """Test l'endpoint webhook"""
@@ -45,17 +45,16 @@ def test_webhook_endpoint():
                 "text": "/start"
             }
         }
-        
-        response = requests.post(
+          response = requests.post(
             f"{settings.API_URL}{settings.TELEGRAM_WEBHOOK_PATH}",
             json=test_message,
             headers={"Content-Type": "application/json"}
         )
         print(f"✅ Webhook Telegram: Status {response.status_code}")
-        return response.status_code == 200
+        assert response.status_code == 200, "Webhook n'a pas répondu avec succès"
     except Exception as e:
         print(f"❌ Webhook Telegram: Erreur - {e}")
-        return False
+        assert False, f"Exception lors de l'accès au webhook: {e}"
 
 def test_telegram_webhook_config():
     """Test la configuration du webhook Telegram"""
@@ -70,16 +69,16 @@ def test_telegram_webhook_config():
             
             if current_url == expected_url:
                 print(f"✅ Configuration Webhook: {current_url}")
-                return True
+                assert True
             else:
                 print(f"⚠️ Webhook mal configuré: {current_url} != {expected_url}")
-                return False
+                assert False, f"Webhook mal configuré: {current_url} != {expected_url}"
         else:
             print(f"❌ Erreur lors de la vérification du webhook: {response.status_code}")
-            return False
+            assert False, f"Erreur HTTP {response.status_code} lors de la vérification webhook"
     except Exception as e:
         print(f"❌ Configuration Webhook: Erreur - {e}")
-        return False
+        assert False, f"Exception lors de la vérification webhook: {e}"
 
 def test_mistral_api():
     """Test la connexion à l'API Mistral"""
@@ -96,13 +95,13 @@ def test_mistral_api():
         
         if response and response.choices:
             print("✅ API Mistral: Connexion réussie")
-            return True
+            assert True
         else:
             print("❌ API Mistral: Pas de réponse")
-            return False
+            assert False, "Pas de réponse de l'API Mistral"
     except Exception as e:
         print(f"❌ API Mistral: Erreur - {e}")
-        return False
+        assert False, f"Exception lors de l'appel à Mistral: {e}"
 
 def main():
     """Exécute tous les tests"""
