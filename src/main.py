@@ -17,7 +17,7 @@ class ConversationMessageIn(BaseModel):
     conversation_id: str
     user_message: str
     bot_response: str
-    timestamp: str = None
+    timestamp: str | None = None
 
 class ConversationMessageOut(BaseModel):
     conversation_id: str
@@ -151,7 +151,7 @@ async def start_conversation(data: ConversationStartIn):
 
 # 2. Récupérer l'historique d'une conversation précise
 @app.get("/conversation/{conversation_id}/history")
-async def get_conversation_history_by_id(conversation_id: str = Path(...), telegram_id: str = None, limit: int = 50):
+async def get_conversation_history_by_id(conversation_id: str = Path(...), telegram_id: str | None = None, limit: int = 50):
     """
     Récupère l'historique des messages pour un conversation_id donné (optionnellement filtré par telegram_id).
     Mode local - retourne un historique vide.

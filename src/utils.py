@@ -2,7 +2,7 @@ from datetime import datetime
 import json
 from uuid import uuid4
 import logging
-from typing import List
+from typing import List, Optional, Any
 
 import boto3
 
@@ -61,8 +61,10 @@ class Utils:
         conversation_id = str(uuid4())
         # Optionnel : on peut enregistrer un "démarrage" de conversation dans DynamoDB si besoin
         # Ici, on ne stocke rien, on retourne juste l'ID
-        return conversation_id    @staticmethod
-    def get_conversation_history_by_id(conversation_id: str, telegram_id: str = None, limit: int = 50):
+        return conversation_id
+    
+    @staticmethod
+    def get_conversation_history_by_id(conversation_id: str, telegram_id: Optional[str] = None, limit: int = 50):
         """
         Récupère l'historique des messages pour un conversation_id donné (optionnellement filtré par telegram_id).
         Nécessite que conversation_id soit un attribut dans chaque item.
@@ -70,6 +72,10 @@ class Utils:
         dynamo_client = Utils.get_dynamo_client()
         # Utilisation de Query avec FilterExpression (pas optimal, mais pas de Scan)
         # Si un GSI sur conversation_id existe, il faudrait l'utiliser ici
+        
+        if telegram_id is None:
+            raise ValueError("telegram_id is required for this operation")
+            
         key_condition = 'PK = :pk'
         expr_attr = {':pk': {'S': f'USER#{telegram_id}'}}
         response = dynamo_client.query(
@@ -83,7 +89,7 @@ class Utils:
         return response.get('Items', [])
     
     @staticmethod
-    def save_conversation_message(telegram_id: str, conversation_id: str, user_message: str, bot_response: str, timestamp: str = None):
+    def save_conversation_message(telegram_id: str, conversation_id: str, user_message: str, bot_response: str, timestamp: Optional[str] = None):
         """
         Enregistre un message de conversation dans DynamoDB avec la structure PK/SK recommandée.
         """
@@ -144,7 +150,7 @@ class Utils:
         logging.getLogger("uvicorn.error").error(msg=f"==> {message}")
 
     @staticmethod
-    def log_list(elements: List[any]):
+    def log_list(elements: List[Any]):
         if elements:
             logging.getLogger("uvicorn.error").info(
                 msg=f"Displaying all the {len(elements)} elements of the list"
@@ -153,10 +159,12 @@ class Utils:
                 logging.getLogger("uvicorn.error").info(
                     msg=f"##### {i} ==> {json.dumps(elements[i], indent=4)}"
                 )
-
+    
     @staticmethod
     def get_logger():
-        return logging.getLogger("uvicorn.error")    @staticmethod
+        return logging.getLogger("uvicorn.error")
+    
+    @staticmethod
     def get_session():
         return boto3.Session(
             region_name=settings.AWS_REGION, profile_name=settings.AWS_PROFILE
@@ -191,7 +199,7 @@ class Utils:
             return False
 
     @staticmethod
-    def insert_chat_message(conversation_id: str, user_id: str, user_message: str, bot_response: str, mistral_id: str = None):
+    def insert_chat_message(conversation_id: str, user_id: str, user_message: str, bot_response: str, mistral_id: Optional[str] = None):
         """
         Insère un message de chat complet dans DynamoDB avec tous les champs requis et timestamp automatique
         """
@@ -224,7 +232,7 @@ def get_dynamo_client():
     """Standalone function to get DynamoDB client"""
     return Utils.get_dynamo_client()
 
-def insert_chat_message(user_id: str, user_message: str, bot_response: str, source: str = "api", mistral_id: str = None):
+def insert_chat_message(user_id: str, user_message: str, bot_response: str, source: str = "api", mistral_id: Optional[str] = None):
     """
     Standalone function to insert chat message with auto-generated conversation_id
     """

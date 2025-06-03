@@ -29,6 +29,10 @@ class TelegramBot:
 
     async def _start_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Gère la commande /start"""
+        if not update.effective_user or not update.message:
+            logging.error("Invalid update received in _start_command")
+            return
+            
         logging.info(f"Command /start received from user {update.effective_user.id}")
         
         welcome_message = (
@@ -44,10 +48,15 @@ class TelegramBot:
             logging.info(f"Welcome message sent to user {update.effective_user.id}")
         except Exception as e:
             logging.error(f"Erreur dans /start: {e}")
-            await update.message.reply_text("Erreur lors du démarrage. Réessayez plus tard.")
+            if update.message:
+                await update.message.reply_text("Erreur lors du démarrage. Réessayez plus tard.")
 
     async def _help_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Gère la commande /help"""
+        if not update.effective_user or not update.message:
+            logging.error("Invalid update received in _help_command")
+            return
+            
         logging.info(f"Command /help received from user {update.effective_user.id}")
         
         help_message = (
@@ -65,10 +74,15 @@ class TelegramBot:
             logging.info(f"Help message sent to user {update.effective_user.id}")
         except Exception as e:
             logging.error(f"Erreur dans /help: {e}")
-            await update.message.reply_text("Erreur lors de l'affichage de l'aide.")
+            if update.message:
+                await update.message.reply_text("Erreur lors de l'affichage de l'aide.")
 
     async def _handle_message(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Gère les messages text des utilisateurs"""
+        if not update.effective_user or not update.message or not update.message.text:
+            logging.error("Invalid update received in _handle_message")
+            return
+            
         user_message = update.message.text
         user_id = str(update.effective_user.id)
         username = update.effective_user.username or f"user_{user_id}"
@@ -96,7 +110,7 @@ class TelegramBot:
                     user_message=user_message,
                     bot_response=answer,
                     source="telegram",
-                    mistral_id=mistral_id
+                    mistral_id=mistral_id if mistral_id else None
                 )
                 if success:
                     logging.info(f"Conversation saved to DynamoDB for user {user_id}")
@@ -112,9 +126,10 @@ class TelegramBot:
 
         except Exception as e:
             logging.error(f"Erreur lors du traitement du message: {e}")
-            await update.message.reply_text(
-                "Désolé, une erreur s'est produite lors du traitement de votre message. Réessayez plus tard."
-            )
+            if update.message:
+                await update.message.reply_text(
+                    "Désolé, une erreur s'est produite lors du traitement de votre message. Réessayez plus tard."
+                )
 
     async def handle_update(self, update_data: dict):
         """
@@ -127,7 +142,7 @@ class TelegramBot:
                 if update:
                     logging.info(f"Processing update ID: {update.update_id}")
                     # Log plus détaillé pour debugging
-                    if update.message:
+                    if update.message and update.effective_user:
                         logging.info(f"Message from {update.effective_user.id}: {update.message.text}")
                     await self.application.process_update(update)
                 else:
