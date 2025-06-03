@@ -45,7 +45,7 @@ def test_webhook_endpoint():
                 "text": "/start"
             }
         }
-          response = requests.post(
+        response = requests.post(
             f"{settings.API_URL}{settings.TELEGRAM_WEBHOOK_PATH}",
             json=test_message,
             headers={"Content-Type": "application/json"}

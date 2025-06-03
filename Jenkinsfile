@@ -3,11 +3,10 @@ pipeline {
 
     options {
         ansiColor('xterm')
-    }
-
-    environment {
+    }    environment {
         // Define environment variables here
         BOT_NAME = 'awesome-bot'
+        CI = 'true'  // Set CI flag to true for test handling
         // BOT_TOKEN = credentials('telegram-bot-token')
     }
 
@@ -26,15 +25,16 @@ pipeline {
                     }
                 }
             }
-        }
-
-
-        stage('Tests Unitaires') {
+        }        stage('Tests Unitaires') {
             steps {
                 script {
-                    // Add your test commands here
-                    echo "Running tests..."
+                    // Use the make test command for consistent testing
+                    echo "Running tests with CI flag set..."
                     sh "make test"
+                    
+                    // Also run the test_system_safe.py file which is CI-friendly
+                    echo "Running CI-friendly system tests..."
+                    sh "venv/bin/python test_system_safe.py"
                 }
             }
         }

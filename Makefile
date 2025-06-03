@@ -33,7 +33,14 @@ serve:
 
 test:
 	@echo "Running tests..."
-	venv/bin/pytest
+	@if [ "${CI}" = "true" ]; then \
+		echo "Running in CI environment - skipping integration tests..."; \
+		venv/bin/pytest -m 'not integration'; \
+		venv/bin/python test_wrapper.py --wrapped; \
+	else \
+		echo "Running all tests..."; \
+		venv/bin/pytest; \
+	fi
 
 test-endpoint:
 	@echo "Running endpoint tests..."
