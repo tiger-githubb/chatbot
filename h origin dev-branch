@@ -1,0 +1,10 @@
+[33m57f59fc[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mdev-branch[m[33m)[m  Security: Remove AWS credentials from todo.md
+[33m0fa0a5d[m feat: Add comprehensive DynamoDB optimization reports and verification scripts
+[33mda17a95[m feat: Integrate DynamoDB for storing chat conversations in Telegram bot
+[33m3618323[m Remove unused AWS_PROFILE variable from Makefile
+[33mc184bf3[m Add AWS and DynamoDB setup scripts and documentation for Telegram chatbot configuration
+[33mf56b1a5[m Fix formatting inconsistencies in README.md for improved readability
+[33mb3a5be2[m[33m ([m[1;31morigin/dev-branch[m[33m)[m Add integration tests for Telegram webhook functionality and API
+[33m071279b[m Refactor: update README to enhance project description and installation instructions for the Telegram AI Chatbot
+[33m50b5a48[m Add: create settings configuration for Python in VSCode and initialize chatbot package version
+[33m730c48b[m Fix: ensure src directory is added to sys.path only if not already present; update todo for local testing
