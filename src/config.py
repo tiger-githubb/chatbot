@@ -17,8 +17,8 @@ class Settings(BaseSettings):
     TELEGRAM_WEBHOOK_URL: str = ""
     TELEGRAM_WEBHOOK_PATH: str = "/telegram/webhook"
     
-    # Configuration API
-    API_URL: str = "http://localhost:8001"
+    # Configuration API - AWS par défaut en production
+    API_URL: str = "https://hky4t9y1fh.execute-api.eu-west-3.amazonaws.com"
 
     model_config = SettingsConfigDict(env_file=".env")
 

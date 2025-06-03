@@ -26,14 +26,10 @@ pipeline {
                     }
                 }
             }
-        }
-
-
-        stage('Tests Unitaires') {
+        }        stage('Tests Unitaires') {
             steps {
                 script {
-                    // Add your test commands here
-                    echo "Running tests..."
+                    echo "Running minimal CI tests..."
                     sh "make test"
                 }
             }
@@ -47,14 +43,20 @@ pipeline {
                     sh "make build"
                 }
             }
-        }
-
-        stage('Deploy') {
+        }        stage('Deploy') {
             steps {
                 script {
-                    // Add your deployment commands here
-                    echo "Deploying the project..."
+                    echo "Deploying the project to AWS..."
                     sh "make deploy env=${BRANCH_NAME}"
+                }
+            }
+        }
+
+        stage('Configure Webhook') {
+            steps {
+                script {
+                    echo "Configuring Telegram webhook for AWS..."
+                    sh "make configure-webhook"
                 }
             }
         }

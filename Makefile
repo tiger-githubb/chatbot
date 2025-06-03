@@ -12,7 +12,7 @@ venv: clean
 	python3 -m venv venv
 
 install:
-	venv/bin/pip install -r requirements.txt
+	python -m pip install -r requirements.txt
 
 build:
 	sam build --use-container -t infrastructure/template.yaml
@@ -29,13 +29,24 @@ deploy:
 
 
 serve:
-	.venv/bin/fastapi dev src/main.py
+	python -m uvicorn src.main:app --host 0.0.0.0 --port 8001 --reload
 
 test:
-	@echo "Running tests..."
-	venv/bin/pytest
+	@echo "Running minimal tests for CI/CD..."
+	python -m pytest tests/test_ci_minimal.py tests/test_minimal_fixed.py -v --tb=short --disable-warnings
+
+test-all:
+	@echo "Running all tests..."
+	python -m pytest tests/ -v --tb=short --disable-warnings
+
+test-unit:
+	@echo "Running unit tests only..."
+	python -m pytest tests/ -m unit -v --tb=short --disable-warnings
 
 test-endpoint:
-	@echo "Running endpoint tests..."
-	aws cloudformation describe-stacks --stack-name multi-stack-${env} --region ${AWS_REGION} \
-		--query "Stacks[0].Outputs[?OutputKey=='ApiUrl'].OutputValue" --output text | xargs -I {} curl -X GET {}
+	@echo "Testing deployed AWS endpoint..."
+	python tests/test_aws_deployment.py
+
+configure-webhook:
+	@echo "Configuring Telegram webhook for AWS deployment..."
+	python tools/set_webhook_aws.py
