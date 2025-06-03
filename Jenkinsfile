@@ -26,14 +26,14 @@ pipeline {
                     }
                 }
             }
-        }        // Tests supprimés - plus de tests unitaires
-        // stage('Tests Unitaires') {
-        //     steps {
-        //         script {
-        //             echo "Tests supprimés"
-        //         }
-        //     }
-        // }
+        }        stage('Tests Basiques') {
+            steps {
+                script {
+                    echo "Exécution des tests basiques..."
+                    sh "make test"
+                }
+            }
+        }
 
         stage('Build') {
             steps {
