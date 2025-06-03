@@ -11,6 +11,7 @@ Parameters:
     AllowedValues:
       - aristidekarbou
       - dev
+      - dev-branch
 
 ###############################################################################
 Resources:
