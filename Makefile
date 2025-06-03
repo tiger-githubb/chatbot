@@ -31,27 +31,11 @@ deploy:
 serve:
 	.venv/bin/fastapi dev src/main.py
 
-# Test basique pour vérifier le projet
 test:
-	@echo "Running basic tests..."
-	python tests/test_basic.py
+	@echo "Running tests..."
+	venv/bin/pytest
 
-# Test avec pytest (alternative)
-test-pytest:
-	@echo "Running tests with pytest..."
-	python -m pytest tests/test_basic.py -v
-
-# Test de fumée rapide
-smoke-test:
-	@echo "Running smoke test..."
-	python tests/test_smoke.py
-
-# Tests supprimés - plus de tests unitaires
-# test-old:
-# 	@echo "Running tests..."
-# 	venv/bin/pytest
-
-# test-endpoint:
-# 	@echo "Running endpoint tests..."
-# 	aws cloudformation describe-stacks --stack-name multi-stack-${env} --region ${AWS_REGION} \
-# 		--query "Stacks[0].Outputs[?OutputKey=='ApiUrl'].OutputValue" --output text | xargs -I {} curl -X GET {}
+test-endpoint:
+	@echo "Running endpoint tests..."
+	aws cloudformation describe-stacks --stack-name multi-stack-${env} --region ${AWS_REGION} \
+		--query "Stacks[0].Outputs[?OutputKey=='ApiUrl'].OutputValue" --output text | xargs -I {} curl -X GET {}

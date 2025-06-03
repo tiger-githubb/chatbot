@@ -26,10 +26,14 @@ pipeline {
                     }
                 }
             }
-        }        stage('Tests Basiques') {
+        }
+
+
+        stage('Tests Unitaires') {
             steps {
                 script {
-                    echo "Exécution des tests basiques..."
+                    // Add your test commands here
+                    echo "Running tests..."
                     sh "make test"
                 }
             }
@@ -53,12 +57,14 @@ pipeline {
                     sh "make deploy env=${BRANCH_NAME}"
                 }
             }
-        }        stage('Test endpoint'){
+        }
+
+        stage('Test endpoint'){
             steps {
                 script {
-                    // Tests d'endpoint supprimés
-                    echo "Tests d'endpoint supprimés - plus de vérification d'endpoint"
-                    // sh "make test-endpoint"
+                    // Add your endpoint testing commands here
+                    echo "Testing the endpoint..."
+                    sh "make test-endpoint"
                 }
             }
         }
