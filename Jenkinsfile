@@ -1,37 +1,40 @@
 pipeline {
     agent any
-    
+
     options {
         ansiColor('xterm')
     }
-    
+
     environment {
         // Define environment variables here
         BOT_NAME = 'awesome-bot'
-        CI = 'true'  // Set CI flag to true for test handling
         // BOT_TOKEN = credentials('telegram-bot-token')
     }
 
     stages {
-        stage('Initialisation') {            steps {
+        stage('Initialisation') {
+            steps {
                 sh "echo Branch name ${BRANCH_NAME}"
                 sh "make venv && make install  "
             }
         }
-        
-        stage('Environnement variable injection') {
+    stage('Environnement variable injection'){
             steps {
-                script{                    withCredentials([file(credentialsId: 'aristidekarbou-chatbot-env-file', variable: 'ENV_FILE')]) {
+                script{
+                    withCredentials([file(credentialsId: 'aristidekarbou-chatbot-env-file', variable: 'ENV_FILE')]) {
                         sh "cat ${ENV_FILE} > .env"
                     }
                 }
             }
-        }        stage('Tests Unitaires') {
+        }
+
+
+        stage('Tests Unitaires') {
             steps {
                 script {
-                    // Use the simplest possible test approach
-                    echo "Running simple CI tests..."
-                    sh "venv/bin/python run_ci_tests.py"
+                    // Add your test commands here
+                    echo "Running tests..."
+                    sh "make test"
                 }
             }
         }
