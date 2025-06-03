@@ -26,15 +26,17 @@ pipeline {
                     }
                 }
             }
-        }
-
-
-        stage('Tests Unitaires') {
+        }        stage('Tests Unitaires') {
             steps {
                 script {
-                    // Add your test commands here
-                    echo "Running tests..."
+                    echo "Running Jenkins CI tests..."
                     sh "make test"
+                }
+            }
+            post {
+                always {
+                    // Publier les résultats des tests pour Jenkins
+                    junit 'test-results.xml'
                 }
             }
         }
@@ -57,14 +59,21 @@ pipeline {
                     sh "make deploy env=${BRANCH_NAME}"
                 }
             }
-        }
-
-        stage('Test endpoint'){
+        }        stage('Test endpoint'){
             steps {
                 script {
                     // Add your endpoint testing commands here
                     echo "Testing the endpoint..."
-                    sh "make test-endpoint"
+                    sh "make test-endpoint env=${BRANCH_NAME}"
+                }
+            }
+        }
+
+        stage('Configure Webhook') {
+            steps {
+                script {
+                    echo "Configuring Telegram webhook for AWS..."
+                    sh "venv/bin/python tools/set_webhook_aws.py"
                 }
             }
         }
