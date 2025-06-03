@@ -78,14 +78,18 @@ async def chat(question: str):
         )
         print("chat_response:", chat_response)
         
-        # Format simple pour le mode local (sans DynamoDB)
+        # Extraire la réponse de Mistral AI
         answer_content = ""
+        mistral_id = ""
         if hasattr(chat_response, 'choices') and chat_response.choices:
             answer_content = getattr(chat_response.choices[0].message, 'content', 'no_content')
+        if hasattr(chat_response, 'id'):
+            mistral_id = getattr(chat_response, 'id', '')
         
+        # Structure de réponse pour compatibilité
         response = {
             "id": {
-                "S": f"{getattr(chat_response, 'id', 'no_id')}",
+                "S": mistral_id if mistral_id else f"chat_{uuid4().hex[:8]}",
             },
             "question": {
                 "S": f"{question}",
@@ -95,9 +99,28 @@ async def chat(question: str):
             }
         }
         
-        # Temporairement désactivé pour le mode local
-        # Utils.insert_data(response)
-        print(f"Mode local - Réponse générée: {answer_content}")
+        # 🚀 NOUVEAU : Sauvegarder dans DynamoDB
+        try:
+            from datetime import datetime
+            conversation_id = f"api_chat_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{uuid4().hex[:8]}"
+            user_id = "api_user"  # Pour les appels API directs
+            
+            success = Utils.insert_chat_message(
+                conversation_id=conversation_id,
+                user_id=user_id,
+                user_message=question,
+                bot_response=answer_content,
+                mistral_id=mistral_id
+            )
+            
+            if success:
+                Utils.log_info(f"Message sauvegardé - Conversation: {conversation_id}")
+            else:
+                Utils.log_error("Échec de la sauvegarde du message")
+                
+        except Exception as e:
+            Utils.log_error(f"Erreur lors de la sauvegarde: {e}")
+            # Continuer même si la sauvegarde échoue
         
         return response
     except Exception as e:

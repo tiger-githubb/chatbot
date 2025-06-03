@@ -8,6 +8,8 @@ class Settings(BaseSettings):
     AWS_REGION: str = "eu-west-3"  # Corrigé depuis AWS_REGION_NAME
     DYNAMO_TABLE: str = ""
     AWS_PROFILE: str = ""
+    AWS_ACCESS_KEY_ID: str = ""
+    AWS_SECRET_ACCESS_KEY: str = ""
     MISTRAL_API_KEY: str = ""
     
     # Configuration Telegram

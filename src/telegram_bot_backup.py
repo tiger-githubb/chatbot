@@ -3,7 +3,6 @@ import httpx
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, filters
 from config import settings
-from utils import insert_chat_message
 
 API_URL = settings.API_URL if hasattr(settings, 'API_URL') else "http://localhost:8001"
 
@@ -70,10 +69,7 @@ class TelegramBot:
     async def _handle_message(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Gère les messages text des utilisateurs"""
         user_message = update.message.text
-        user_id = str(update.effective_user.id)
-        username = update.effective_user.username or f"user_{user_id}"
-        
-        logging.info(f"Message received from user {user_id} (@{username}): {user_message}")
+        logging.info(f"Message received from user {update.effective_user.id}: {user_message}")
 
         try:
             # Appeler l'API de chat pour obtenir une réponse
@@ -83,32 +79,13 @@ class TelegramBot:
                 if chat_response.status_code == 200:
                     chat_data = chat_response.json()
                     answer = chat_data.get("answer", {}).get("S", "Désolé, je n'ai pas pu générer de réponse.")
-                    mistral_id = chat_data.get("id", "")
                 else:
                     logging.error(f"API chat error: {chat_response.status_code} - {chat_response.text}")
                     answer = "Désolé, une erreur s'est produite. Réessayez plus tard."
-                    mistral_id = ""
-
-            # Sauvegarder la conversation dans DynamoDB
-            try:
-                success = insert_chat_message(
-                    user_id=user_id,
-                    user_message=user_message,
-                    bot_response=answer,
-                    source="telegram",
-                    mistral_id=mistral_id
-                )
-                if success:
-                    logging.info(f"Conversation saved to DynamoDB for user {user_id}")
-                else:
-                    logging.warning(f"Failed to save conversation to DynamoDB for user {user_id}")
-            except Exception as db_error:
-                logging.error(f"DynamoDB error for user {user_id}: {db_error}")
-                # Continue anyway - don't let DB errors prevent the response
 
             # Répondre à l'utilisateur
             await update.message.reply_text(answer)
-            logging.info(f"Response sent to user {user_id}")
+            logging.info(f"Response sent to user {update.effective_user.id}")
 
         except Exception as e:
             logging.error(f"Erreur lors du traitement du message: {e}")
