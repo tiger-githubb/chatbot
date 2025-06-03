@@ -1,4 +1,5 @@
 pipeline {
+    pipeline {
     agent any
 
     options {
@@ -18,7 +19,8 @@ pipeline {
                 sh "make venv && make install  "
             }
         }
-    stage('Environnement variable injection'){
+        
+        stage('Environnement variable injection'){
             steps {
                 script{
                     withCredentials([file(credentialsId: 'aristidekarbou-chatbot-env-file', variable: 'ENV_FILE')]) {
@@ -26,7 +28,7 @@ pipeline {
                     }
                 }
             }
-        }        stage('Tests Unitaires') {
+        }stage('Tests Unitaires') {
             steps {
                 script {
                     // Charger les variables d'environnement et exécuter les tests
