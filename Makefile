@@ -33,7 +33,11 @@ serve:
 
 test:
 	@echo "Running tests..."
-	venv/bin/pytest
+	venv/bin/pytest tests/ --ignore=tools/
+
+test-jenkins:
+	@echo "Running Jenkins tests with environment validation..."
+	bash scripts/test_jenkins.sh
 
 test-endpoint:
 	@echo "Running endpoint tests..."

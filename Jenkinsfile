@@ -26,15 +26,18 @@ pipeline {
                     }
                 }
             }
-        }
-
-
-        stage('Tests Unitaires') {
+        }        stage('Tests Unitaires') {
             steps {
                 script {
-                    // Add your test commands here
-                    echo "Running tests..."
-                    sh "make test"
+                    // Charger les variables d'environnement et exécuter les tests
+                    echo "Running tests with environment validation..."
+                    sh """
+                        # Exporter les variables d'environnement depuis .env
+                        if [ -f .env ]; then
+                            export \$(cat .env | grep -v '^#' | xargs)
+                        fi
+                        make test-jenkins
+                    """
                 }
             }
         }

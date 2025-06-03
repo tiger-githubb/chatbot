@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """
 Script pour tester la configuration AWS Lambda et DynamoDB
+CE SCRIPT N'EST PAS UN TEST PYTEST - il est conçu pour être exécuté directement
 """
 
 import boto3
@@ -8,6 +9,7 @@ import requests
 import json
 from dotenv import load_dotenv
 import os
+import sys
 
 # Charger les variables d'environnement de production
 load_dotenv('.env.production')
