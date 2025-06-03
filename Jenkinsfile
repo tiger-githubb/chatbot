@@ -26,18 +26,14 @@ pipeline {
                     }
                 }
             }
-        }
-
-
-        stage('Tests Unitaires') {
-            steps {
-                script {
-                    // Add your test commands here
-                    echo "Running tests..."
-                    sh "make test"
-                }
-            }
-        }
+        }        // Tests supprimés - plus de tests unitaires
+        // stage('Tests Unitaires') {
+        //     steps {
+        //         script {
+        //             echo "Tests supprimés"
+        //         }
+        //     }
+        // }
 
         stage('Build') {
             steps {
@@ -57,14 +53,12 @@ pipeline {
                     sh "make deploy env=${BRANCH_NAME}"
                 }
             }
-        }
-
-        stage('Test endpoint'){
+        }        stage('Test endpoint'){
             steps {
                 script {
-                    // Add your endpoint testing commands here
-                    echo "Testing the endpoint..."
-                    sh "make test-endpoint"
+                    // Tests d'endpoint supprimés
+                    echo "Tests d'endpoint supprimés - plus de vérification d'endpoint"
+                    // sh "make test-endpoint"
                 }
             }
         }

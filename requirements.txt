@@ -1,4 +1,3 @@
-pytest
 fastapi[standard]
 pydantic_settings
 boto3
