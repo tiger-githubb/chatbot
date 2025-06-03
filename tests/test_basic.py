@@ -8,10 +8,6 @@ import sys
 import os
 from pathlib import Path
 
-# Ajouter le répertoire src au path
-src_path = Path(__file__).parent.parent / "src"
-sys.path.insert(0, str(src_path))
-
 
 def test_python_version():
     """Vérifier que Python est en version supportée"""
@@ -47,8 +43,8 @@ def test_basic_imports():
         print("✅ FastAPI importé avec succès")
         
         # Test import des modules du projet
-        import main
-        import config
+        from src import main
+        from src import config
         print("✅ Modules du projet importés avec succès")
         
         # Vérifier que l'app FastAPI existe

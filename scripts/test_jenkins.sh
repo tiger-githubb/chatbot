@@ -26,6 +26,8 @@ echo "=== Verification des variables d'environnement terminee ==="
 
 # Executer les tests unitaires
 echo "=== Execution des tests unitaires ==="
+# S'assurer que PYTHONPATH inclut le répertoire racine pour les imports src.*
+export PYTHONPATH="${PYTHONPATH:+$PYTHONPATH:}./"
 venv/bin/pytest tests/ --ignore=tools/ -v
 
 if [ $? -eq 0 ]; then

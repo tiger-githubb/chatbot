@@ -33,7 +33,7 @@ serve:
 
 test:
 	@echo "Running tests..."
-	venv/bin/pytest tests/ --ignore=tools/
+	PYTHONPATH=. venv/bin/pytest tests/ --ignore=tools/
 
 test-jenkins:
 	@echo "Running Jenkins tests with environment validation..."

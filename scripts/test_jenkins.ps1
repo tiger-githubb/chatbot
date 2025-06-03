@@ -27,6 +27,9 @@ Write-Host "✅ Vérification des variables d'environnement terminée" -Foregrou
 # Exécuter les tests unitaires
 Write-Host "🧪 Exécution des tests unitaires..." -ForegroundColor Cyan
 
+# S'assurer que PYTHONPATH inclut le répertoire racine pour les imports src.*
+$env:PYTHONPATH = if ($env:PYTHONPATH) { "$env:PYTHONPATH;." } else { "." }
+
 if (Test-Path "venv\Scripts\pytest.exe") {
     & venv\Scripts\pytest.exe tests\ --ignore=tools\ -v
 } else {
