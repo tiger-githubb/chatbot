@@ -1,5 +1,4 @@
 pipeline {
-    pipeline {
     agent any
 
     options {
@@ -28,7 +27,9 @@ pipeline {
                     }
                 }
             }
-        }stage('Tests Unitaires') {
+        }
+
+        stage('Tests Unitaires') {
             steps {
                 script {
                     // Charger les variables d'environnement et exécuter les tests
