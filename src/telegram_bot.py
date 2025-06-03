@@ -1,9 +1,10 @@
 import logging
 import httpx
+import traceback
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, filters
-from config import settings
-from utils import insert_chat_message
+from src.config import settings
+from src.utils import insert_chat_message
 
 API_URL = settings.API_URL if hasattr(settings, 'API_URL') else "http://localhost:8001"
 
@@ -87,8 +88,7 @@ class TelegramBot:
         user_id = str(update.effective_user.id)
         username = update.effective_user.username or f"user_{user_id}"
         
-        logging.info(f"Message received from user {user_id} (@{username}): {user_message}")
-
+        logging.info(f"Message received from user {user_id} (@{username}): {user_message}")       
         try:
             # Appeler l'API de chat pour obtenir une réponse
             async with httpx.AsyncClient(timeout=30) as client:
@@ -97,7 +97,9 @@ class TelegramBot:
                 if chat_response.status_code == 200:
                     chat_data = chat_response.json()
                     answer = chat_data.get("answer", {}).get("S", "Désolé, je n'ai pas pu générer de réponse.")
-                    mistral_id = chat_data.get("id", "")
+                    # Correction: extraire correctement la valeur du dictionnaire DynamoDB
+                    mistral_id_data = chat_data.get("id", {})
+                    mistral_id = mistral_id_data.get("S", "") if isinstance(mistral_id_data, dict) else str(mistral_id_data)
                 else:
                     logging.error(f"API chat error: {chat_response.status_code} - {chat_response.text}")
                     answer = "Désolé, une erreur s'est produite. Réessayez plus tard."

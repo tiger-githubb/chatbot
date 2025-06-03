@@ -1,0 +1,75 @@
+Deploying the project...
++ make deploy env=aristidekarbou
+Deploying to  aristidekarbou
+# Extract env from the branch name
+sam deploy --resolve-s3 --template-file .aws-sam/build/template.yaml --stack-name multi-stack-aristidekarbou \
+         --capabilities CAPABILITY_IAM --region eu-west-3 --parameter-overrides EnvironmentName=aristidekarbou --no-fail-on-empty-changeset
+
+		Managed S3 bucket: aws-sam-cli-managed-default-samclisourcebucket-zkra3cjlyup6
+		A different default S3 bucket can be set in samconfig.toml
+		Or by specifying --s3-bucket explicitly.
+	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  262144 / 28015937  (0.94%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  524288 / 28015937  (1.87%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  786432 / 28015937  (2.81%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  1048576 / 28015937  (3.74%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  1310720 / 28015937  (4.68%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  1572864 / 28015937  (5.61%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  1835008 / 28015937  (6.55%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  2097152 / 28015937  (7.49%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  2359296 / 28015937  (8.42%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  2621440 / 28015937  (9.36%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  2850113 / 28015937  (10.17%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  3112257 / 28015937  (11.11%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  3374401 / 28015937  (12.04%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  3636545 / 28015937  (12.98%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  3898689 / 28015937  (13.92%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  4160833 / 28015937  (14.85%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  4422977 / 28015937  (15.79%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  4685121 / 28015937  (16.72%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  4947265 / 28015937  (17.66%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  5209409 / 28015937  (18.59%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  5471553 / 28015937  (19.53%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  5733697 / 28015937  (20.47%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  5995841 / 28015937  (21.40%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  6257985 / 28015937  (22.34%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  6520129 / 28015937  (23.27%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  6782273 / 28015937  (24.21%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  7044417 / 28015937  (25.14%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  7306561 / 28015937  (26.08%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  7568705 / 28015937  (27.02%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  7830849 / 28015937  (27.95%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  8092993 / 28015937  (28.89%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  8355137 / 28015937  (29.82%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  8617281 / 28015937  (30.76%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  8879425 / 28015937  (31.69%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  9141569 / 28015937  (32.63%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  9403713 / 28015937  (33.57%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  9665857 / 28015937  (34.50%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  9928001 / 28015937  (35.44%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  10190145 / 28015937  (36.37%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  10452289 / 28015937  (37.31%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  10714433 / 28015937  (38.24%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  10976577 / 28015937  (39.18%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  11238721 / 28015937  (40.12%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  11500865 / 28015937  (41.05%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  11763009 / 28015937  (41.99%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  12025153 / 28015937  (42.92%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  12287297 / 28015937  (43.86%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  12549441 / 28015937  (44.79%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  12811585 / 28015937  (45.73%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  13073729 / 28015937  (46.67%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  13335873 / 28015937  (47.60%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  13598017 / 28015937  (48.54%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  13860161 / 28015937  (49.47%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  14122305 / 28015937  (50.41%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  14384449 / 28015937  (51.34%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  14646593 / 28015937  (52.28%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  14908737 / 28015937  (53.22%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  15170881 / 28015937  (54.15%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  15433025 / 28015937  (55.09%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  15695169 / 28015937  (56.02%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  15957313 / 28015937  (56.96%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  16219457 / 28015937  (57.89%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  16481601 / 28015937  (58.83%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  16743745 / 28015937  (59.77%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  17005889 / 28015937  (60.70%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  17268033 / 28015937  (61.64%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  17530177 / 28015937  (62.57%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  17792321 / 28015937  (63.51%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  18054465 / 28015937  (64.44%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  18316609 / 28015937  (65.38%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  18578753 / 28015937  (66.31%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  18840897 / 28015937  (67.25%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  19103041 / 28015937  (68.19%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  19365185 / 28015937  (69.12%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  19627329 / 28015937  (70.06%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  19889473 / 28015937  (70.99%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  20151617 / 28015937  (71.93%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  20413761 / 28015937  (72.86%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  20675905 / 28015937  (73.80%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  20938049 / 28015937  (74.74%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  21200193 / 28015937  (75.67%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  21462337 / 28015937  (76.61%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  21724481 / 28015937  (77.54%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  21986625 / 28015937  (78.48%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  22248769 / 28015937  (79.41%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  22510913 / 28015937  (80.35%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  22773057 / 28015937  (81.29%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  23035201 / 28015937  (82.22%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  23297345 / 28015937  (83.16%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  23559489 / 28015937  (84.09%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  23821633 / 28015937  (85.03%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  24083777 / 28015937  (85.96%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  24345921 / 28015937  (86.90%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  24608065 / 28015937  (87.84%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  24870209 / 28015937  (88.77%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  25132353 / 28015937  (89.71%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  25394497 / 28015937  (90.64%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  25656641 / 28015937  (91.58%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  25918785 / 28015937  (92.51%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  26180929 / 28015937  (93.45%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  26443073 / 28015937  (94.39%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  26705217 / 28015937  (95.32%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  26967361 / 28015937  (96.26%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  27229505 / 28015937  (97.19%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  27491649 / 28015937  (98.13%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  27753793 / 28015937  (99.06%)	Uploading to 0f5d0cb5dc9267235b46c91b56ee444b  28015937 / 28015937  (100.00%)
+
+	Deploying with following values
+	===============================
+	Stack name                   : multi-stack-aristidekarbou
+	Region                       : eu-west-3
+	Confirm changeset            : False
+	Disable rollback             : False
+	Deployment s3 bucket         : aws-sam-cli-managed-default-samclisourcebucket-zkra3cjlyup6
+	Capabilities                 : ["CAPABILITY_IAM"]
+	Parameter overrides          : {"EnvironmentName": "aristidekarbou"}
+	Signing Profiles             : {}
+
+Initiating deployment
+=====================
+
+	Uploading to f3325114226445c6bb28db72b93062aa.template  1580 / 1580  (100.00%)
+
+
+Waiting for changeset to be created..
+
+CloudFormation stack changeset
+-------------------------------------------------------------------------------------------------
+Operation                LogicalResourceId        ResourceType             Replacement            
+-------------------------------------------------------------------------------------------------
+* Modify                 Api                      AWS::ApiGatewayV2::Api   False                  
+* Modify                 Function                 AWS::Lambda::Function    False                  
+-------------------------------------------------------------------------------------------------
+
+
+Changeset created successfully. arn:aws:cloudformation:eu-west-3:629193321657:changeSet/samcli-deploy1748954257/f1d71cac-ae53-47e1-89e3-29570a024753
+
+
+2025-06-03 12:37:49 - Waiting for stack create/update to complete
+
+CloudFormation events from stack operations (refresh every 5.0 seconds)
+-------------------------------------------------------------------------------------------------
+ResourceStatus           ResourceType             LogicalResourceId        ResourceStatusReason   
+-------------------------------------------------------------------------------------------------
+UPDATE_IN_PROGRESS       AWS::CloudFormation::S   multi-stack-             User Initiated         
+                         tack                     aristidekarbou                                  
+UPDATE_IN_PROGRESS       AWS::Lambda::Function    Function                 -                      
+UPDATE_COMPLETE          AWS::Lambda::Function    Function                 -                      
+UPDATE_COMPLETE_CLEANU   AWS::CloudFormation::S   multi-stack-             -                      
+P_IN_PROGRESS            tack                     aristidekarbou                                  
+UPDATE_COMPLETE          AWS::CloudFormation::S   multi-stack-             -                      
+                         tack                     aristidekarbou                                  
+-------------------------------------------------------------------------------------------------
+
+CloudFormation outputs from deployed stack
+-------------------------------------------------------------------------------------------------
+Outputs                                                                                         
+-------------------------------------------------------------------------------------------------
+Key                 ApiUrl                                                                      
+Description         URL of your API                                                             
+Value               https://hky4t9y1fh.execute-api.eu-west-3.amazonaws.com/                     
+
+Key                 DynamoDBTableName                                                           
+Description         -                                                                           
+Value               chatbot-dbtable-aristidekarbou                                              
+-------------------------------------------------------------------------------------------------
+
+
+Successfully created/updated stack - multi-stack-aristidekarbou in eu-west-3
+
