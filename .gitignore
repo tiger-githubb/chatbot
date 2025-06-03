@@ -7,7 +7,7 @@
 [Ll]ib
 [Ll]ib64
 [Ll]ocal
-[Ss]cripts
+venv/[Ss]cripts
 pyvenv.cfg
 .venv
 venv
@@ -139,6 +139,7 @@ celerybeat.pid
 
 # Environments
 .env
+.env.*
 .venv
 env/
 venv/
