@@ -9,7 +9,9 @@ pipeline {
         // Define environment variables here
         BOT_NAME = 'awesome-bot'
         // BOT_TOKEN = credentials('telegram-bot-token')
-    }    stages {
+    }
+
+    stages {
         stage('Initialisation') {
             steps {
                 sh "echo Branch name ${BRANCH_NAME}"
