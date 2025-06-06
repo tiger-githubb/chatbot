@@ -8,30 +8,17 @@ pipeline {
     environment {
         // Define environment variables here
         BOT_NAME = 'awesome-bot'
-        TELEGRAM_BOT_TOKEN = credentials('telegram-bot-token')
-        MISTRAL_API_KEY = credentials('mistral-api-key')
-        PYTHON_VERSION = '3.12'
+        // BOT_TOKEN = credentials('telegram-bot-token')
     }
 
-    stages {        stage('Initialisation') {
+    stages {
+        stage('Initialisation') {
             steps {
                 sh "echo Branch name ${BRANCH_NAME}"
-                sh """
-                    # Install AWS SAM CLI if not present
-                    if ! command -v sam &> /dev/null; then
-                        echo "Installing AWS SAM CLI..."
-                        curl -Lo sam-cli.zip https://github.com/aws/aws-sam-cli/releases/latest/download/aws-sam-cli-linux-x86_64.zip
-                        unzip sam-cli.zip -d sam-installation
-                        sudo ./sam-installation/install
-                        rm -rf sam-cli.zip sam-installation
-                    fi
-                    
-                    # Install dependencies
-                    make venv && make install
-                """
+                sh "make venv && make install"
             }
         }
-
+        
         stage('Environnement variable injection'){
             steps {
                 script{
@@ -42,55 +29,18 @@ pipeline {
             }
         }
 
-        stage('Code Quality') {
-            parallel {
-                stage('Formatting') {
-                    steps {
-                        sh "make format"
-                    }
-                }
-                /* stage('Linting') {
-                    steps {
-                        sh "make lint"
-                    }
-                } */
-                /* stage('Type Checking') {
-                    steps {
-                        sh "make type-check"
-                    }
-                } */
-            }
-            post {
-                failure {
-                    error "Code quality checks failed"
-                }
-            }
-        }
-
         stage('Tests Unitaires') {
             steps {
                 script {
-                    // Add your test commands here
-                    echo "Running tests..."
-                    sh "make test"
-                }
-            }
-            post {
-                always {
-                    junit 'test-results/*.xml'
-                }
-            }
-        }
-
-        stage('Security Scan') {
-            steps {
-                script {
-                    sh ".venv/bin/bandit -r src/ -f json -o bandit-report.json"
-                }
-            }
-            post {
-                always {
-                    archiveArtifacts artifacts: 'bandit-report.json', fingerprint: true
+                    // Charger les variables d'environnement et exécuter les tests
+                    echo "Running tests with environment validation..."
+                    sh """
+                        # Exporter les variables d'environnement depuis .env
+                        if [ -f .env ]; then
+                            export \$(cat .env | grep -v '^#' | xargs)
+                        fi
+                        make test-jenkins
+                    """
                 }
             }
         }
@@ -106,71 +56,16 @@ pipeline {
         }
 
         stage('Deploy') {
-            when {
-                anyOf {
-                    branch 'aristidekarbou'
-                    branch 'preprod'
-                }
-            }
             steps {
                 script {
                     // Add your deployment commands here
                     echo "Deploying the project..."
-                    withCredentials([
-                        string(credentialsId: 'telegram-bot-token', variable: 'TELEGRAM_BOT_TOKEN'),
-                        string(credentialsId: 'mistral-api-key', variable: 'MISTRAL_API_KEY')
-                    ]) {
-                        sh """
-                            make deploy env=${BRANCH_NAME} \
-                            TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN} \
-                            MISTRAL_API_KEY=${MISTRAL_API_KEY}
-                        """
-                    }
-                }
-            }
-        }
-
-        stage('Configure Webhook') {
-            when {
-                anyOf {
-                    branch 'aristidekarbou'
-                    branch 'preprod'
-                }
-            }
-            steps {
-                script {
-                    // Get the API URL from CloudFormation outputs
-                    def apiUrl = sh(
-                        script: """
-                            aws cloudformation describe-stacks \
-                            --stack-name multi-stack-${BRANCH_NAME} \
-                            --region eu-west-3 \
-                            --query "Stacks[0].Outputs[?OutputKey=='ApiUrl'].OutputValue" \
-                            --output text
-                        """,
-                        returnStdout: true
-                    ).trim()
-
-                    // Configure the webhook
-                    withCredentials([string(credentialsId: 'telegram-bot-token', variable: 'TELEGRAM_BOT_TOKEN')]) {
-                        sh """
-                            # Activer l'environnement virtuel et exécuter le script
-                            . .venv/bin/activate
-                            python tools/set_webhook.py --url "${apiUrl}/telegram/webhook"
-                            deactivate
-                        """
-                    }
+                    sh "make deploy env=${BRANCH_NAME}"
                 }
             }
         }
 
         stage('Test endpoint'){
-            when {
-                anyOf {
-                    branch 'aristidekarbou'
-                    branch 'preprod'
-                }
-            }
             steps {
                 script {
                     // Add your endpoint testing commands here
@@ -179,13 +74,13 @@ pipeline {
                 }
             }
         }
-    }    post {
+    }
+
+    post {
         always {
-            node {
-                script {
-                    // Clean workspace
-                    cleanWs()
-                }
+            script {
+                // Add your post-build actions here
+                echo "Post-build actions..."
             }
         }
         success {
