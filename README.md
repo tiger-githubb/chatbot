@@ -1,137 +1,208 @@
-# Chatbot avec FastAPI, Telegram et DynamoDB
+# 🐅 Tiger ChatBot
 
-Un chatbot intelligent utilisant Mistral AI, accessible via une API REST et Telegram, avec stockage persistant dans AWS DynamoDB.
+Un chatbot intelligent basé sur Telegram utilisant l'IA Mistral, déployé sur AWS avec FastAPI.
 
-## Fonctionnalités
+## 📋 Description
 
-- API REST avec FastAPI
-- Intégration Telegram
-- Réponses intelligentes via Mistral AI
-- Stockage persistant avec DynamoDB
-- Historique des conversations
-- Sécurité et gestion des erreurs
+Tiger est un assistant conversationnel développé en Python qui combine :
 
-## Démarrage Rapide
+- **Interface Telegram** : Bot accessible via Telegram avec commandes interactives
+- **IA Mistral** : Intégration de l'API Mistral pour des réponses intelligentes
+- **Architecture AWS** : Déploiement serverless avec Lambda et DynamoDB
+- **API REST** : Interface FastAPI avec limitation de taux et CORS
 
-Consultez [QUICKSTART.md](docs/QUICKSTART.md) pour une installation rapide.
+## 🚀 Fonctionnalités
 
-## Structure du Projet
+### Bot Telegram
+
+- `/start` - Accueil et présentation
+- `/help` - Aide et liste des commandes
+- `/stats` - Statistiques d'utilisation
+- `/clear` - Réinitialisation de l'historique
+- Chat conversationnel avec historique persistant
+
+### API Features
+
+- Rate limiting pour éviter les abus
+- Gestion CORS pour intégration web
+- Monitoring et logging
+- Architecture serverless AWS
+
+## 🛠️ Technologies
+
+- **Python 3.12** - Langage principal
+- **FastAPI** - Framework web moderne
+- **python-telegram-bot** - SDK Telegram
+- **Mistral AI** - Modèle d'intelligence artificielle
+- **AWS Lambda** - Compute serverless
+- **DynamoDB** - Base de données NoSQL
+- **SAM** - Infrastructure as Code
+
+## 📦 Installation
+
+### Prérequis
+
+- Python 3.12+
+- AWS CLI configuré
+- SAM CLI installé
+- Compte Telegram Bot (via BotFather)
+- Clé API Mistral
+
+### Configuration locale
+
+1. **Cloner le projet**
+
+```bash
+git clone <repository-url>
+cd chatbot
+```
+
+2. **Créer l'environnement virtuel**
+
+```bash
+make venv
+source venv/bin/activate  # Linux/Mac
+# ou
+venv\Scripts\activate     # Windows
+```
+
+3. **Installer les dépendances**
+
+```bash
+make install
+```
+
+4. **Configuration des variables d'environnement**
+   Créer un fichier `.env` :
+
+```env
+TELEGRAM_BOT_TOKEN=your_telegram_bot_token
+MISTRAL_API_KEY=your_mistral_api_key
+AWS_ACCESS_KEY_ID=your_aws_access_key
+AWS_SECRET_ACCESS_KEY=your_aws_secret_key
+DYNAMO_TABLE=chatbot-table
+TELEGRAM_WEBHOOK_URL=your_webhook_url
+```
+
+## 🚦 Démarrage
+
+### Développement local
+
+```bash
+# Démarrer l'API localement
+make deploy-local
+
+# Ou directement avec uvicorn
+uvicorn src.main:app --reload
+```
+
+### Tests
+
+```bash
+# Exécuter tous les tests
+make test
+
+# Tests avec couverture
+pytest --cov=src tests/
+```
+
+### Déploiement AWS
+
+```bash
+# Build du projet
+make build
+
+# Déploiement
+make deploy env=aristidekarbou
+```
+
+## 📁 Structure du Projet
 
 ```
 chatbot/
-├── src/                      # Code source principal
-│   ├── __init__.py
-│   ├── main.py              # Point d'entrée FastAPI
-│   ├── config.py            # Configuration et variables d'environnement
-│   ├── telegram_bot.py      # Gestionnaire du bot Telegram
-│   ├── utils.py             # Utilitaires
-│   ├── models/              # Modèles de données
-│   │   ├── __init__.py
-│   │   ├── message.py       # Modèle de message
-│   │   └── conversation.py  # Modèle de conversation
-│   ├── services/            # Logique métier
-│   │   ├── __init__.py
-│   │   ├── chat.py         # Service de chat
-│   │   └── storage.py      # Service de stockage DynamoDB
-│
-├── tools/                   # Outils et scripts
-│   ├── init.py             # Script d'initialisation
-│   ├── setup_dynamodb.py   # Configuration DynamoDB
-│   └── set_webhook.py      # Configuration webhook Telegram
-│
-├── tests/                  # Tests
-│   ├── __init__.py
-│   ├── conftest.py        # Configuration pytest
-│   ├── test_api.py        # Tests API
-│   └── test_utils.py      # Tests des fonctions utilitaires
-│
-├── docs/                   # Documentation
-│   ├── QUICKSTART.md      # Guide de démarrage rapide
-│   ├── API.md             # Documentation API
-│   ├── ARCHITECTURE.md    # Architecture technique
-│   ├── DEPLOYMENT.md      # Guide de déploiement
-│
-├── CONTRIBUTING.md    # Guide de contribution
-├── .env.example           # Template des variables d'environnement
+├── src/                    # Code source principal
+│   ├── main.py            # Point d'entrée FastAPI
+│   ├── telegram_bot.py    # Logique du bot Telegram
+│   ├── config.py          # Configuration et variables d'environnement
+│   └── utils.py           # Utilitaires et helpers
+├── tests/                 # Tests unitaires et d'intégration
+├── infrastructure/        # Templates AWS SAM
+├── tools/                 # Scripts d'initialisation
 ├── requirements.txt       # Dépendances Python
-├── pytest.ini            # Configuration des tests
-└── README.md             # Ce fichier
+├── Makefile              # Commandes de build et déploiement
+└── Jenkinsfile           # Pipeline CI/CD
 ```
 
-## Technologies Utilisées
+## 🔧 Configuration
 
-- **Backend**: FastAPI, Python 3.8+
-- **Base de données**: AWS DynamoDB
-- **IA**: Mistral AI
-- **Bot**: API Telegram
-- **Tests**: pytest
-- **Qualité**: black, flake8, mypy
+### Variables d'environnement requises
 
-## Architecture
+- `TELEGRAM_BOT_TOKEN` : Token du bot Telegram
+- `MISTRAL_API_KEY` : Clé API Mistral AI
+- `AWS_ACCESS_KEY_ID` : Clé d'accès AWS
+- `AWS_SECRET_ACCESS_KEY` : Clé secrète AWS
+- `DYNAMO_TABLE` : Nom de la table DynamoDB
 
-```mermaid
-graph LR
-    Client[Client HTTP] --> API[FastAPI]
-    Telegram[Telegram] --> API
-    API --> DynamoDB[AWS DynamoDB]
-    API --> MistralAI[Mistral AI]
-```
+### Architecture AWS
 
-Pour plus de détails, consultez [ARCHITECTURE.md](docs/ARCHITECTURE.md).
+- **Lambda Function** : Exécution du code Python
+- **API Gateway** : Exposition des endpoints REST
+- **DynamoDB** : Stockage des conversations
+- **CloudFormation** : Provisioning infrastructure
 
-## Configuration
+## 🧪 Tests
 
-1. Copiez `.env.example` vers `.env`
-2. Configurez vos variables d'environnement :
-   ```env
-   AWS_ACCESS_KEY_ID=votre_access_key
-   AWS_SECRET_ACCESS_KEY=votre_secret_key
-   AWS_REGION=votre_region
-   TELEGRAM_BOT_TOKEN=votre_token_bot
-   MISTRAL_API_KEY=votre_cle_api
-   DYNAMODB_TABLE_NAME=nom_de_votre_table
-   ```
+Le projet inclut une suite de tests complète :
 
-## Documentation
-
-- [Guide de Démarrage](docs/QUICKSTART.md)
-- [Documentation API](docs/API.md)
-- [Architecture](docs/ARCHITECTURE.md)
-- [Déploiement](docs/DEPLOYMENT.md)
-- [Contribution](CONTRIBUTING.md)
-
-## Tests
+- Tests unitaires des composants
+- Tests d'intégration API
+- Tests du bot Telegram
+- Mock des services AWS avec `moto`
 
 ```bash
-# Lancer tous les tests
-pytest
+# Exécution des tests
+pytest tests/
 
-# Avec couverture
-pytest --cov=src
-
-# Tests spécifiques
-pytest tests/test_api.py
+# Tests avec rapport de couverture
+pytest --cov=src --cov-report=html tests/
 ```
 
-## Contribution
+## 📊 Qualité de Code
 
-Les contributions sont les bienvenues ! Consultez [CONTRIBUTING.md](CONTRIBUTING.md).
+- **MyPy** : Vérification des types
+- **Black** : Formatage automatique
+- **Flake8** : Linting
+- **Bandit** : Analyse de sécurité
 
-## Bonnes Pratiques
+```bash
+# Vérifications qualité
+mypy src/
+black src/ tests/
+flake8 src/ tests/
+bandit -r src/
+```
 
-- Suivez les conventions [PEP8](https://www.python.org/dev/peps/pep-0008/)
-- Écrivez des tests pour les nouvelles fonctionnalités
-- Documentez votre code
-- Utilisez les types statiques
-- Évitez les scans DynamoDB
+## 🤝 Contribution
 
-## Licence
+1. Fork le projet
+2. Créer une branche feature (`git checkout -b feature/AmazingFeature`)
+3. Commit les changements (`git commit -m 'Add AmazingFeature'`)
+4. Push vers la branche (`git push origin feature/AmazingFeature`)
+5. Ouvrir une Pull Request
 
-Ce projet est sous licence MIT. Voir le fichier [LICENSE](LICENSE) pour plus de détails.
+## 📄 License
 
-## Remerciements
+Ce projet est sous licence MIT. Voir le fichier `LICENSE` pour plus de détails.
 
-- [FastAPI](https://fastapi.tiangolo.com/)
-- [python-telegram-bot](https://python-telegram-bot.org/)
-- [Mistral AI](https://mistral.ai/)
-- [AWS DynamoDB](https://aws.amazon.com/dynamodb/) 
+## 👤 Auteur
+
+**Aristide Karbou**
+
+- GitHub: [@aristidekarbou](https://github.com/tiger-githubb)
+
+## 🔗 Ressources
+
+- [Documentation Telegram Bot API](https://core.telegram.org/bots/api)
+- [Mistral AI Documentation](https://docs.mistral.ai/)
+- [FastAPI Documentation](https://fastapi.tiangolo.com/)
+- [AWS SAM Documentation](https://docs.aws.amazon.com/sam/)
