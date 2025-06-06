@@ -66,9 +66,28 @@ async def root(request: Request) -> Dict[str, str]:
 async def telegram_webhook(request: Request, background_tasks: BackgroundTasks) -> Dict[str, str]:
     """Endpoint pour recevoir les mises à jour de Telegram"""
     try:
-        update_data = await request.json()
+        # Improved error handling for JSON parsing
+        content_type = request.headers.get("content-type", "")
+        if not content_type.startswith("application/json"):
+            Utils.log_error(f"Invalid content-type: {content_type}")
+            return {"status": "error", "message": "Invalid content-type"}
+
+        # Get raw body first to debug
+        body = await request.body()
+        if not body:
+            Utils.log_error("Empty request body received")
+            return {"status": "error", "message": "Empty request body"}
+
+        # Parse JSON with better error handling
+        try:
+            update_data = await request.json()
+        except ValueError as json_error:
+            Utils.log_error(f"JSON parsing error: {json_error}. Raw body: {body.decode('utf-8', errors='ignore')}")
+            return {"status": "error", "message": f"Invalid JSON: {json_error}"}
+
         if not update_data:
-            raise ValueError("Empty update data received")
+            Utils.log_error("Parsed JSON is empty")
+            return {"status": "error", "message": "Empty update data"}
 
         # Process the update and get the response
         background_tasks.add_task(telegram_bot.handle_update, update_data)
@@ -76,7 +95,8 @@ async def telegram_webhook(request: Request, background_tasks: BackgroundTasks) 
 
     except Exception as e:
         error_msg = str(e)
-        Utils.log_error(f"Error in telegram_webhook: {error_msg}")
+        Utils.log_error(f"==> Error in telegram_webhook: {error_msg}")
+        Utils.log_error(f"Error type: {type(e).__name__}")
         return {"status": "error", "message": error_msg}
 
 

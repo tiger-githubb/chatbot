@@ -27,13 +27,18 @@ Parameters:
 
 ###############################################################################
 Resources:
-  ###############################################################################
-  DynamoDBTable:
+  ###############################################################################  DynamoDBTable:
     Type: "AWS::DynamoDB::Table"
     Properties:
       TableName: !Sub "chatbot-dbtable-${EnvironmentName}"
       AttributeDefinitions:
         - AttributeName: "id"
+          AttributeType: "S"
+        - AttributeName: "conversation_id"
+          AttributeType: "S"
+        - AttributeName: "timestamp"
+          AttributeType: "S"
+        - AttributeName: "user_id"
           AttributeType: "S"
       KeySchema:
         - AttributeName: "id"
@@ -41,6 +46,29 @@ Resources:
       ProvisionedThroughput:
         ReadCapacityUnits: 5
         WriteCapacityUnits: 5
+      GlobalSecondaryIndexes:
+        - IndexName: "conversation_id-timestamp-index"
+          KeySchema:
+            - AttributeName: "conversation_id"
+              KeyType: "HASH"
+            - AttributeName: "timestamp"
+              KeyType: "RANGE"
+          ProvisionedThroughput:
+            ReadCapacityUnits: 5
+            WriteCapacityUnits: 5
+          Projection:
+            ProjectionType: "ALL"
+        - IndexName: "user_id-timestamp-index"
+          KeySchema:
+            - AttributeName: "user_id"
+              KeyType: "HASH"
+            - AttributeName: "timestamp"
+              KeyType: "RANGE"
+          ProvisionedThroughput:
+            ReadCapacityUnits: 5
+            WriteCapacityUnits: 5
+          Projection:
+            ProjectionType: "ALL"
 
   Api:
     Type: AWS::Serverless::HttpApi
@@ -61,7 +89,6 @@ Resources:
           - "X-Api-Key"
           - "X-Amz-Security-Token"
           - "X-Amz-User-Agent"
-
   Function:
     Type: AWS::Serverless::Function
     Properties:
@@ -69,6 +96,8 @@ Resources:
       CodeUri: ../
       Handler: src/main.handler
       Runtime: python3.12
+      MemorySize: 512
+      Timeout: 30
       Environment:
         Variables:
           ENV_NAME: !Ref EnvironmentName
