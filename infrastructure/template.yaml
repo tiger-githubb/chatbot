@@ -27,7 +27,8 @@ Parameters:
 
 ###############################################################################
 Resources:
-  ###############################################################################  DynamoDBTable:
+  ###############################################################################
+  DynamoDBTable:
     Type: "AWS::DynamoDB::Table"
     Properties:
       TableName: !Sub "chatbot-dbtable-${EnvironmentName}"
@@ -69,7 +70,6 @@ Resources:
             WriteCapacityUnits: 5
           Projection:
             ProjectionType: "ALL"
-
   Api:
     Type: AWS::Serverless::HttpApi
     Properties:
@@ -89,6 +89,7 @@ Resources:
           - "X-Api-Key"
           - "X-Amz-Security-Token"
           - "X-Amz-User-Agent"
+
   Function:
     Type: AWS::Serverless::Function
     Properties:
