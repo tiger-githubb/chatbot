@@ -10,8 +10,20 @@ Parameters:
     Type: String
     AllowedValues:
       - aristidekarbou
-      - dev
-      - dev-branch
+      - preprod
+      - prod
+  TelegramBotToken:
+    Type: String
+    Description: Token for Telegram Bot (from BotFather)
+    NoEcho: true
+  MistralApiKey:
+    Type: String
+    Description: API Key for Mistral AI
+    NoEcho: true
+  TelegramWebhookUrl:
+    Type: String
+    Description: URL for Telegram Webhook (will be set automatically)
+    Default: ""
 
 ###############################################################################
 Resources:
@@ -30,6 +42,26 @@ Resources:
         ReadCapacityUnits: 5
         WriteCapacityUnits: 5
 
+  Api:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      Name: !Sub "chatbot-apigateway-${EnvironmentName}"
+      FailOnWarnings: true
+      CorsConfiguration:
+        AllowOrigins:
+          - "*"
+        AllowMethods:
+          - "GET"
+          - "POST"
+          - "OPTIONS"
+        AllowHeaders:
+          - "Content-Type"
+          - "X-Amz-Date"
+          - "Authorization"
+          - "X-Api-Key"
+          - "X-Amz-Security-Token"
+          - "X-Amz-User-Agent"
+
   Function:
     Type: AWS::Serverless::Function
     Properties:
@@ -37,21 +69,49 @@ Resources:
       CodeUri: ../
       Handler: src/main.handler
       Runtime: python3.12
+      Environment:
+        Variables:
+          ENV_NAME: !Ref EnvironmentName
+          DYNAMO_TABLE: !Ref DynamoDBTable
+          TELEGRAM_BOT_TOKEN: !Ref TelegramBotToken
+          MISTRAL_API_KEY: !Ref MistralApiKey
+          TELEGRAM_WEBHOOK_URL: !Ref TelegramWebhookUrl
+          TELEGRAM_WEBHOOK_PATH: "/telegram/webhook"
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref DynamoDBTable
+        - Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:GetItem
+                - dynamodb:DeleteItem
+                - dynamodb:PutItem
+                - dynamodb:Query
+                - dynamodb:UpdateItem
+                - dynamodb:BatchWriteItem
+                - dynamodb:BatchGetItem
+                - dynamodb:DescribeTable
+                - dynamodb:ConditionCheckItem
+                - apigateway:POST
+                - apigateway:GET
+              Resource:
+                - !GetAtt DynamoDBTable.Arn
+                - !Sub "${DynamoDBTable.Arn}/index/*"
       Events:
-        Api:
+        ApiEvent:
           Type: HttpApi
           Properties:
             ApiId: !Ref Api
-
-  Api:
-    Type: AWS::Serverless::HttpApi
-    Properties:
-      Name: !Sub "chatbot-apigateway-${EnvironmentName}"
+            Path: /{proxy+}
+            Method: ANY
 
 Outputs:
-  DynamoDBTableName:
-    Value: !Ref DynamoDBTable
   ApiUrl:
-    Description: URL of your API
-    Value:
-      Fn::Sub: "https://${Api}.execute-api.${AWS::Region}.${AWS::URLSuffix}/"
+    Description: "API Gateway endpoint URL"
+    Value: !Sub "https://${Api}.execute-api.${AWS::Region}.amazonaws.com/"
+  WebhookUrl:
+    Description: "Telegram Webhook URL"
+    Value: !Sub "https://${Api}.execute-api.${AWS::Region}.amazonaws.com/telegram/webhook"
+  DynamoDBTableName:
+    Description: "DynamoDB Table Name"
+    Value: !Ref DynamoDBTable

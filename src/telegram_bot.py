@@ -1,164 +1,284 @@
-import logging
-import httpx
-import traceback
-from telegram import Update
-from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, filters
-from src.config import settings
-from src.utils import insert_chat_message
-
-API_URL = settings.API_URL if hasattr(settings, 'API_URL') else "http://localhost:8001"
-
-logging.basicConfig(
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    level=logging.INFO
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import (
+    Application,
+    CommandHandler,
+    MessageHandler,
+    filters,
+    ContextTypes,
+    CallbackQueryHandler,
 )
+from .config import env_vars
+from .utils import Utils
+from datetime import datetime
+
 
 class TelegramBot:
-    def __init__(self):
-        if not settings.TELEGRAM_BOT_TOKEN:
-            raise RuntimeError("TELEGRAM_BOT_TOKEN manquant dans .env !")
-        
-        self.application = ApplicationBuilder().token(settings.TELEGRAM_BOT_TOKEN).build()
+    def __init__(self) -> None:
+        self.application = Application.builder().token(env_vars.TELEGRAM_BOT_TOKEN).build()
+        self.application.add_error_handler(self._error_handler)
         self._setup_handlers()
 
-    def _setup_handlers(self):
+    async def _error_handler(self, update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
+        Utils.log_error(f"Unhandled exception: {context.error}")
+
+    def _setup_handlers(self) -> None:
         """Configure les gestionnaires de commandes du bot"""
-        # L'ordre est important: CommandHandlers avant MessageHandler
         self.application.add_handler(CommandHandler("start", self._start_command))
         self.application.add_handler(CommandHandler("help", self._help_command))
-        self.application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, self._handle_message))
+        self.application.add_handler(CommandHandler("settings", self._settings_command))
+        self.application.add_handler(CommandHandler("stats", self._stats_command))
+        self.application.add_handler(CommandHandler("clear", self._clear_command))
+        self.application.add_handler(CallbackQueryHandler(self._button_click))
+        self.application.add_handler(
+            MessageHandler(filters.TEXT & ~filters.COMMAND, self._handle_message)
+        )
 
-    async def _start_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+    async def _start_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """Gère la commande /start"""
-        if not update.effective_user or not update.message:
-            logging.error("Invalid update received in _start_command")
+        if not update.message or not update.effective_chat:
+            Utils.log_error("Ignored update: not a message or chat.")
             return
-            
-        logging.info(f"Command /start received from user {update.effective_user.id}")
-        
+
         welcome_message = (
-            "👋 Bonjour ! Je suis votre assistant conversationnel.\n\n"
-            "💬 Posez-moi une question et je vous répondrai !\n\n"
+            "👋 Bonjour! Je suis votre assistant conversationnel.\n\n"
+            "Je peux vous aider avec diverses tâches et répondre à vos questions.\n\n"
             "Commandes disponibles:\n"
-            "🔹 /help - Afficher l'aide\n\n"
-            "Envoyez-moi simplement un message pour commencer!"
+            "🔹 /help - Afficher l'aide détaillée\n"
+            "🔹 /settings - Configurer vos préférences\n"
+            "🔹 /stats - Voir vos statistiques\n"
+            "🔹 /clear - Effacer l'historique\n\n"
+            "Pour commencer, envoyez-moi simplement un message!"
         )
-        
-        try:
-            await update.message.reply_text(welcome_message)
-            logging.info(f"Welcome message sent to user {update.effective_user.id}")
-        except Exception as e:
-            logging.error(f"Erreur dans /start: {e}")
-            if update.message:
-                await update.message.reply_text("Erreur lors du démarrage. Réessayez plus tard.")
+        await self.application.bot.send_message(
+            chat_id=update.message.chat.id, text=welcome_message
+        )
 
-    async def _help_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+    async def _help_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """Gère la commande /help"""
-        if not update.effective_user or not update.message:
-            logging.error("Invalid update received in _help_command")
+        if not update.message or not update.effective_chat:
             return
-            
-        logging.info(f"Command /help received from user {update.effective_user.id}")
-        
+
         help_message = (
-            "📚 Aide du Chatbot IA\n\n"
-            "💬 **Utilisation normale:**\n"
-            "Envoyez-moi simplement vos messages et je vous répondrai !\n\n"
-            "🤖 **Commandes disponibles:**\n"
-            "🔹 /start - Démarrer une nouvelle conversation\n"
-            "🔹 /help - Afficher cette aide\n\n"
-            "🧠 Je suis alimenté par Mistral AI et je peux vous aider avec diverses tâches."
+            "📚 Guide d'utilisation\n\n"
+            "1️⃣ Conversation normale:\n"
+            "   - Envoyez simplement vos messages\n"
+            "   - Je maintiens le contexte de la conversation\n\n"
+            "2️⃣ Commandes disponibles:\n"
+            "   🔸 /start - Démarrer une nouvelle conversation\n"
+            "   🔸 /help - Afficher ce message d'aide\n"
+            "   🔸 /settings - Configurer vos préférences\n"
+            "   🔸 /stats - Voir vos statistiques\n"
+            "   🔸 /clear - Effacer l'historique\n\n"
+            "3️⃣ Bonnes pratiques:\n"
+            "   - Soyez précis dans vos questions\n"
+            "   - Une question à la fois\n"
+            "   - Utilisez /clear pour recommencer\n\n"
+            "Pour toute question ou problème, n'hésitez pas à demander!"
         )
-        
-        try:
-            await update.message.reply_text(help_message)
-            logging.info(f"Help message sent to user {update.effective_user.id}")
-        except Exception as e:
-            logging.error(f"Erreur dans /help: {e}")
-            if update.message:
-                await update.message.reply_text("Erreur lors de l'affichage de l'aide.")
+        await self.application.bot.send_message(chat_id=update.message.chat.id, text=help_message)
 
-    async def _handle_message(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """Gère les messages text des utilisateurs"""
-        if not update.effective_user or not update.message or not update.message.text:
-            logging.error("Invalid update received in _handle_message")
+    async def _settings_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        """Gère la commande /settings"""
+        if not update.message or not update.effective_chat:
             return
-            
-        user_message = update.message.text
-        user_id = str(update.effective_user.id)
-        username = update.effective_user.username or f"user_{user_id}"
-        
-        logging.info(f"Message received from user {user_id} (@{username}): {user_message}")       
+
+        keyboard = [
+            [
+                InlineKeyboardButton("🔔 Notifications", callback_data="settings_notifications"),
+                InlineKeyboardButton("🌍 Langue", callback_data="settings_language"),
+            ],
+            [
+                InlineKeyboardButton("📝 Format des réponses", callback_data="settings_format"),
+                InlineKeyboardButton("🎨 Thème", callback_data="settings_theme"),
+            ],
+        ]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        await self.application.bot.send_message(
+            chat_id=update.message.chat.id,
+            text="⚙️ Paramètres\n\n Choisissez un paramètre à configurer:",
+            reply_markup=reply_markup,
+        )
+
+    async def _stats_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        """Gère la commande /stats"""
+        if not update.effective_chat or not update.message:
+            return
+
+        if not update.message and not update.callback_query:
+            Utils.log_info("Ignored update: not a message or callback query.")
+            return
+
+        chat_id = str(update.effective_chat.id)
         try:
-            # Appeler l'API de chat pour obtenir une réponse
-            async with httpx.AsyncClient(timeout=30) as client:
-                chat_response = await client.get(f"{API_URL}/chat", params={"question": user_message})
-                
-                if chat_response.status_code == 200:
-                    chat_data = chat_response.json()
-                    answer = chat_data.get("answer", {}).get("S", "Désolé, je n'ai pas pu générer de réponse.")
-                    # Correction: extraire correctement la valeur du dictionnaire DynamoDB
-                    mistral_id_data = chat_data.get("id", {})
-                    mistral_id = mistral_id_data.get("S", "") if isinstance(mistral_id_data, dict) else str(mistral_id_data)
-                else:
-                    logging.error(f"API chat error: {chat_response.status_code} - {chat_response.text}")
-                    answer = "Désolé, une erreur s'est produite. Réessayez plus tard."
-                    mistral_id = ""
+            # Récupérer les statistiques depuis DynamoDB
+            messages = Utils.get_conversation_messages(chat_id)
 
-            # Sauvegarder la conversation dans DynamoDB
-            try:
-                success = insert_chat_message(
-                    user_id=user_id,
-                    user_message=user_message,
-                    bot_response=answer,
-                    source="telegram",
-                    mistral_id=mistral_id if mistral_id else None
-                )
-                if success:
-                    logging.info(f"Conversation saved to DynamoDB for user {user_id}")
-                else:
-                    logging.warning(f"Failed to save conversation to DynamoDB for user {user_id}")
-            except Exception as db_error:
-                logging.error(f"DynamoDB error for user {user_id}: {db_error}")
-                # Continue anyway - don't let DB errors prevent the response
-
-            # Répondre à l'utilisateur
-            await update.message.reply_text(answer)
-            logging.info(f"Response sent to user {user_id}")
-
-        except Exception as e:
-            logging.error(f"Erreur lors du traitement du message: {e}")
-            if update.message:
-                await update.message.reply_text(
-                    "Désolé, une erreur s'est produite lors du traitement de votre message. Réessayez plus tard."
+            total_messages = len(messages)
+            if total_messages > 0:
+                first_message = min(messages, key=lambda x: x["timestamp"])
+                first_date = datetime.fromisoformat(first_message["timestamp"])
+                average_messages_per_day = total_messages / max(
+                    1, (datetime.now() - first_date).days
                 )
 
-    async def handle_update(self, update_data: dict):
-        """
-        Gère les mises à jour reçues via le webhook.
-        """
-        try:
-            # Utilisation du contexte async pour initialiser l'application
-            async with self.application:
-                update = Update.de_json(update_data, self.application.bot)
-                if update:
-                    logging.info(f"Processing update ID: {update.update_id}")
-                    # Log plus détaillé pour debugging
-                    if update.message and update.effective_user:
-                        logging.info(f"Message from {update.effective_user.id}: {update.message.text}")
-                    await self.application.process_update(update)
-                else:
-                    logging.warning("Received invalid update data")
+                stats_message = (
+                    "📊 Vos Statistiques\n\n"
+                    f"📝 Nombre total de messages: {total_messages}\n"
+                    f"📅 Premier message: {first_date.strftime('%d/%m/%Y')}\n"
+                    f"💬 Conversation active depuis: {(datetime.now() - first_date).days} jours\n"
+                    f"📈 Moyenne de messages par jour: {average_messages_per_day:.1f}"
+                )
+            else:
+                stats_message = (
+                    "📊 Vos Statistiques\n\n"
+                    "Vous n'avez pas encore de messages.\n"
+                    "Commencez à discuter pour voir vos statistiques!"
+                )
+
+            await self.application.bot.send_message(
+                chat_id=update.message.chat.id, text=stats_message
+            )
+
         except Exception as e:
-            logging.error(f"Error processing update: {e}")
-            import traceback
-            logging.error(f"Traceback: {traceback.format_exc()}")
-            raise
+            Utils.log_error(f"Erreur lors de la récupération des statistiques: {str(e)}")
+            await self.application.bot.send_message(
+                chat_id=update.message.chat.id,
+                text="Désolé, une erreur s'est produite lors de la récupération des statistiques.",
+            )
 
-    def run_polling(self):
-        """Lance le bot en mode polling (pour tests locaux)"""
-        print("Bot Telegram démarré en mode polling. Appuyez sur Ctrl+C pour arrêter.")
-        self.application.run_polling()
+    async def _clear_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        """Gère la commande /clear"""
+        if not update.message or not update.effective_chat:
+            return
 
-# Créer une instance globale du bot
+        keyboard = [
+            [
+                InlineKeyboardButton("✅ Oui, effacer", callback_data="clear_confirm"),
+                InlineKeyboardButton("❌ Non, annuler", callback_data="clear_cancel"),
+            ]
+        ]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        await self.application.bot.send_message(
+            chat_id=update.message.chat.id,
+            text="🗑️ Êtes-vous sûr de vouloir effacer l'historique de conversation?\n"
+            "Cette action est irréversible.",
+            reply_markup=reply_markup,
+        )
+
+    async def _button_click(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        """Gère les clics sur les boutons inline"""
+        if not update.callback_query or not update.effective_chat:
+            return
+
+        query = update.callback_query
+        await query.answer()
+
+        if not query.data:
+            return
+
+        if query.data.startswith("settings_"):
+            setting = query.data.split("_")[1]
+            messages = {
+                "notifications": "🔔 Les paramètres de notification seront bientôt disponibles!",
+                "language": "🌍 Le support multilingue sera ajouté prochainement!",
+                "format": "📝 Les options de format seront disponibles bientôt!",
+                "theme": "🎨 La personnalisation du thème arrive bientôt!",
+            }
+            await query.edit_message_text(
+                messages.get(setting, "⚙️ Cette option n'est pas encore disponible.")
+            )
+
+        elif query.data.startswith("clear_"):
+            action = query.data.split("_")[1]
+            chat_id = str(update.effective_chat.id)
+            if action == "confirm":
+                try:
+                    # Supprimer les messages
+                    Utils.delete_conversation_messages(chat_id)
+                    await query.edit_message_text("🗑️ Historique effacé avec succès!")
+                except Exception as e:
+                    Utils.log_error(f"Erreur lors de la suppression de l'historique: {str(e)}")
+                    await query.edit_message_text(
+                        "❌ Une erreur s'est produite lors de la suppression de l'historique."
+                    )
+            else:
+                await query.edit_message_text("❌ Opération annulée.")
+
+    async def _handle_message(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        """Gère les messages texte reçus"""
+        if not update.effective_chat or not update.message:
+            return
+
+        if not update.message and not update.callback_query:
+            Utils.log_info("Ignored update: not a message or callback query.")
+            return
+
+        chat_id = str(update.effective_chat.id)
+        message_text = update.message.text
+
+        try:
+            Utils.log_info(
+                f"Message reçu de Telegram - Chat ID: {chat_id}, Message: {message_text}"
+            )
+
+            # Utiliser directement le client Mistral
+            from .main import client, model
+
+            chat_response = client.chat.complete(
+                model=model,
+                messages=[
+                    {
+                        "role": "user",
+                        "content": message_text,
+                    },
+                ],
+            )
+
+            if not chat_response.choices:
+                raise ValueError("No response received from Mistral AI")
+
+            # Sauvegarder dans DynamoDB
+            timestamp = datetime.now().isoformat()
+            response = {
+                "id": {
+                    "S": f"{chat_response.id}",
+                },
+                "conversation_id": {"S": chat_id},
+                "timestamp": {"S": timestamp},
+                "question": {
+                    "S": f"{message_text}",
+                },
+                "answer": {
+                    "S": f"{chat_response.choices[0].message.content}",
+                },
+                "source": {"S": "telegram"},
+            }
+            Utils.insert_data(response)
+
+            # Envoyer la réponse à l'utilisateur
+            await self.application.bot.send_message(
+                chat_id=update.message.chat.id, text=chat_response.choices[0].message.content
+            )
+
+        except Exception as e:
+            Utils.log_error(f"Erreur lors du traitement du message Telegram: {str(e)}")
+            await self.application.bot.send_message(
+                chat_id=update.message.chat.id,
+                text="Désolé, une erreur s'est produite lors du traitement de votre message.",
+            )
+
+    async def setup_webhook(self) -> None:
+        """Configure le webhook pour le bot"""
+        webhook_url = f"{env_vars.TELEGRAM_WEBHOOK_URL}{env_vars.TELEGRAM_WEBHOOK_PATH}"
+        await self.application.bot.set_webhook(webhook_url)
+        Utils.log_info(f"Webhook set to {webhook_url}")
+
+    async def handle_update(self, update_data: dict) -> None:
+        """Gère les mises à jour reçues via le webhook"""
+        async with self.application:
+            update = Update.de_json(update_data, self.application.bot)
+            if update:
+                await self.application.process_update(update)
+
+
 telegram_bot = TelegramBot()

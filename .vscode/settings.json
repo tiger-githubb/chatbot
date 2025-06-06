@@ -1,7 +1,0 @@
-{
-  "python.defaultInterpreterPath": "python",
-  "python.analysis.extraPaths": ["./src"],
-  "python.analysis.autoSearchPaths": true,
-  "python.analysis.autoImportCompletions": true,
-  "pylsp.plugins.jedi.extra_paths": ["./src"]
-}

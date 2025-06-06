@@ -1,164 +1,137 @@
-# 🤖 Telegram AI Chatbot
+# Chatbot avec FastAPI, Telegram et DynamoDB
 
-Un chatbot Telegram intelligent alimenté par Mistral AI, construit avec FastAPI et déployable sur AWS Lambda.
+Un chatbot intelligent utilisant Mistral AI, accessible via une API REST et Telegram, avec stockage persistant dans AWS DynamoDB.
 
-## 🎯 **Aperçu du Projet**
+## Fonctionnalités
 
-**Status: 🟢 Fonctionnel**  
-**Fonctionnalités:**
+- API REST avec FastAPI
+- Intégration Telegram
+- Réponses intelligentes via Mistral AI
+- Stockage persistant avec DynamoDB
+- Historique des conversations
+- Sécurité et gestion des erreurs
 
-- Webhook Telegram pour réception instantanée des messages
-- Intelligence artificielle avec Mistral AI (modèle mistral-small-latest)
-- Commandes `/start` et `/help` fonctionnelles
-- Architecture asynchrone performante
-- Déploiement sur AWS Lambda avec DynamoDB pour le stockage
+## Démarrage Rapide
 
-## 📋 Architecture
+Consultez [QUICKSTART.md](docs/QUICKSTART.md) pour une installation rapide.
 
-### **Locale**
-
-```
-🌐 Telegram API → 🔗 ngrok → 🚀 FastAPI Server → 🧠 Mistral AI
-```
-
-### **AWS (Production)**
-
-```
-🌐 Telegram API → 🔒 API Gateway → λ AWS Lambda → 🧠 Mistral AI
-                                        ↓
-                                   🗄️ DynamoDB
-```
-
-## 🚀 **Démarrage Rapide**
-
-### **Prérequis**
-
-```powershell
-# Python 3.12+ installé
-python --version
-# Installer les dépendances
-pip install -r requirements.txt
-pip install -e .
-```
-
-### **Configuration**
-
-Créer un fichier `.env` avec :
-
-```env
-ENV_NAME=production
-MISTRAL_API_KEY=your_mistral_api_key_here
-TELEGRAM_BOT_TOKEN=your_telegram_bot_token_here
-TELEGRAM_WEBHOOK_URL=your_ngrok_url
-TELEGRAM_WEBHOOK_PATH=/telegram/webhook
-API_URL=http://localhost:8001
-```
-
-### **Lancement en Local**
-
-```powershell
-# 1. Démarrer l'API FastAPI
-cd src
-python -m uvicorn main:app --host 0.0.0.0 --port 8001 --reload
-
-# 2. Dans un nouveau terminal : Exposer avec ngrok
-ngrok http 8001
-
-# 3. Dans un troisième terminal : Configurer le webhook
-cd tools
-python set_webhook.py
-```
-
-## 🛠️ API Endpoints
-
-- **API Chat**: `/chat?question=<question>` - Envoyer une question au bot
-- **Documentation Swagger**: `/docs` - Documentation interactive
-- **Webhook Telegram**: `/telegram/webhook` - Endpoint pour les mises à jour Telegram
-- **Conversations**:
-  - `/conversation/start` - Démarrer une nouvelle conversation
-  - `/conversation/{conversation_id}/close` - Fermer une conversation
-
-## 📱 Commandes Bot
-
-| Commande         | Description               |
-| ---------------- | ------------------------- |
-| `/start`         | Démarrer une conversation |
-| `/help`          | Afficher l'aide           |
-| Messages normaux | Réponses Mistral AI       |
-
-## 📁 Structure du Projet
+## Structure du Projet
 
 ```
 chatbot/
-├── infrastructure/          # Infrastructure AWS
-│   └── template.yaml       # Template CloudFormation SAM
-├── src/                     # Code source principal
-│   ├── main.py             # API FastAPI et point d'entrée Lambda
-│   ├── telegram_bot.py     # Bot Telegram (async)
-│   ├── config.py           # Configuration (.env)
-│   └── utils.py            # Utilitaires
-├── tools/                   # Outils de configuration
-│   ├── set_webhook.py      # Configuration webhook local
-│   └── set_webhook_aws.py  # Configuration webhook AWS
-└── tests/                   # Tests unitaires et d'intégration
+├── src/                      # Code source principal
+│   ├── __init__.py
+│   ├── main.py              # Point d'entrée FastAPI
+│   ├── config.py            # Configuration et variables d'environnement
+│   ├── telegram_bot.py      # Gestionnaire du bot Telegram
+│   ├── utils.py             # Utilitaires
+│   ├── models/              # Modèles de données
+│   │   ├── __init__.py
+│   │   ├── message.py       # Modèle de message
+│   │   └── conversation.py  # Modèle de conversation
+│   ├── services/            # Logique métier
+│   │   ├── __init__.py
+│   │   ├── chat.py         # Service de chat
+│   │   └── storage.py      # Service de stockage DynamoDB
+│
+├── tools/                   # Outils et scripts
+│   ├── init.py             # Script d'initialisation
+│   ├── setup_dynamodb.py   # Configuration DynamoDB
+│   └── set_webhook.py      # Configuration webhook Telegram
+│
+├── tests/                  # Tests
+│   ├── __init__.py
+│   ├── conftest.py        # Configuration pytest
+│   ├── test_api.py        # Tests API
+│   └── test_utils.py      # Tests des fonctions utilitaires
+│
+├── docs/                   # Documentation
+│   ├── QUICKSTART.md      # Guide de démarrage rapide
+│   ├── API.md             # Documentation API
+│   ├── ARCHITECTURE.md    # Architecture technique
+│   ├── DEPLOYMENT.md      # Guide de déploiement
+│
+├── CONTRIBUTING.md    # Guide de contribution
+├── .env.example           # Template des variables d'environnement
+├── requirements.txt       # Dépendances Python
+├── pytest.ini            # Configuration des tests
+└── README.md             # Ce fichier
 ```
 
-## 🚨 **Gestion des Services**
+## Technologies Utilisées
 
-### **Arrêt des Services**
+- **Backend**: FastAPI, Python 3.8+
+- **Base de données**: AWS DynamoDB
+- **IA**: Mistral AI
+- **Bot**: API Telegram
+- **Tests**: pytest
+- **Qualité**: black, flake8, mypy
 
-```powershell
-# Arrêter avec Ctrl+C dans les terminaux respectifs ou :
-Get-Process python | Stop-Process -Force
-Get-Process ngrok | Stop-Process -Force
+## Architecture
+
+```mermaid
+graph LR
+    Client[Client HTTP] --> API[FastAPI]
+    Telegram[Telegram] --> API
+    API --> DynamoDB[AWS DynamoDB]
+    API --> MistralAI[Mistral AI]
 ```
 
-### **Vérification des Services**
+Pour plus de détails, consultez [ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
-```powershell
-# Vérifier l'API
-curl http://localhost:8001/
-# Vérifier ngrok
-curl http://127.0.0.1:4040/api/tunnels
+## Configuration
+
+1. Copiez `.env.example` vers `.env`
+2. Configurez vos variables d'environnement :
+   ```env
+   AWS_ACCESS_KEY_ID=votre_access_key
+   AWS_SECRET_ACCESS_KEY=votre_secret_key
+   AWS_REGION=votre_region
+   TELEGRAM_BOT_TOKEN=votre_token_bot
+   MISTRAL_API_KEY=votre_cle_api
+   DYNAMODB_TABLE_NAME=nom_de_votre_table
+   ```
+
+## Documentation
+
+- [Guide de Démarrage](docs/QUICKSTART.md)
+- [Documentation API](docs/API.md)
+- [Architecture](docs/ARCHITECTURE.md)
+- [Déploiement](docs/DEPLOYMENT.md)
+- [Contribution](CONTRIBUTING.md)
+
+## Tests
+
+```bash
+# Lancer tous les tests
+pytest
+
+# Avec couverture
+pytest --cov=src
+
+# Tests spécifiques
+pytest tests/test_api.py
 ```
 
-## 🚀 Déploiement AWS
+## Contribution
 
-### **Prérequis AWS**
+Les contributions sont les bienvenues ! Consultez [CONTRIBUTING.md](CONTRIBUTING.md).
 
-```powershell
-# AWS CLI
-aws configure
+## Bonnes Pratiques
 
-# SAM CLI
-sam --version
-```
+- Suivez les conventions [PEP8](https://www.python.org/dev/peps/pep-0008/)
+- Écrivez des tests pour les nouvelles fonctionnalités
+- Documentez votre code
+- Utilisez les types statiques
+- Évitez les scans DynamoDB
 
-### **Déploiement**
+## Licence
 
-```powershell
-# Construction
-make build
+Ce projet est sous licence MIT. Voir le fichier [LICENSE](LICENSE) pour plus de détails.
 
-# Déploiement
-make deploy env=dev
+## Remerciements
 
-# Configurer le webhook Telegram vers AWS
-cd tools
-python set_webhook_aws.py
-```
-
-### **URL AWS Production**
-
-L'URL de l'API déployée sur AWS est :
-`https://hky4t9y1fh.execute-api.eu-west-3.amazonaws.com`
-
-## 🔧 **Variables d'Environnement**
-
-| Variable             | Description           | Exemple                                     |
-| -------------------- | --------------------- | ------------------------------------------- |
-| `MISTRAL_API_KEY`    | Clé API Mistral AI    | `mistral_api_key123`                        |
-| `TELEGRAM_BOT_TOKEN` | Token du bot Telegram | `123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11` |
-| `AWS_REGION`         | Région AWS            | `eu-west-3`                                 |
-| `API_URL`            | URL de l'API          | `http://localhost:8001` ou l'URL AWS        |
-| `DYNAMO_TABLE`       | Table DynamoDB        | `chatbot-dbtable-dev`                       |
+- [FastAPI](https://fastapi.tiangolo.com/)
+- [python-telegram-bot](https://python-telegram-bot.org/)
+- [Mistral AI](https://mistral.ai/)
+- [AWS DynamoDB](https://aws.amazon.com/dynamodb/) 

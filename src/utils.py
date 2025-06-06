@@ -1,156 +1,42 @@
-from datetime import datetime
 import json
-from uuid import uuid4
 import logging
-from typing import List, Optional, Any
+import os
+from typing import List, Any, Dict
+from logging import Logger
 
 import boto3
+from boto3.dynamodb.conditions import Key
 
-from src.config import settings
-## Simple edit
+from src.config import env_vars
 
 
 class Utils:
-    
-    @staticmethod
-    def close_conversation(conversation_id: str, telegram_id: str):
-        """
-        Marque une conversation comme close (ajoute ou met à jour un item status=closed).
-        """
-        dynamo_client = Utils.get_dynamo_client()
-        # On récupère tous les items de la conversation pour cet utilisateur et on les met à jour
-        items = Utils.get_conversation_history_by_id(conversation_id, telegram_id)
-        for item in items:
-            pk = item['PK']['S']
-            sk = item['SK']['S']
-            dynamo_client.update_item(
-                TableName=settings.DYNAMO_TABLE,
-                Key={"PK": {"S": pk}, "SK": {"S": sk}},
-                UpdateExpression="SET #s = :closed",
-                ExpressionAttributeNames={"#s": "status"},
-                ExpressionAttributeValues={":closed": {"S": "closed"}}
-            )
-
-    @staticmethod
-    def get_last_active_conversation(telegram_id: str):
-        """
-        Retourne le dernier conversation_id actif (status != closed) pour un utilisateur.
-        """
-        dynamo_client = Utils.get_dynamo_client()
-        response = dynamo_client.query(
-            TableName=settings.DYNAMO_TABLE,
-            KeyConditionExpression='PK = :pk',
-            ExpressionAttributeValues={
-                ':pk': {'S': f'USER#{telegram_id}'},
-            },
-            ScanIndexForward=False,  # du plus récent au plus ancien
-            Limit=50
-        )
-        items = response.get('Items', [])
-        for item in items:
-            # On considère la première conversation non close comme la dernière active
-            if item.get('status', {}).get('S', 'active') != 'closed':
-                return item.get('conversation_id', {}).get('S', None)
-        return None
-
-    @staticmethod
-    def start_conversation(telegram_id: str) -> str:
-        """
-        Crée un nouvel identifiant de conversation (UUID) et retourne cet ID.
-        """
-        conversation_id = str(uuid4())
-        # Optionnel : on peut enregistrer un "démarrage" de conversation dans DynamoDB si besoin
-        # Ici, on ne stocke rien, on retourne juste l'ID
-        return conversation_id
-    
-    @staticmethod
-    def get_conversation_history_by_id(conversation_id: str, telegram_id: Optional[str] = None, limit: int = 50):
-        """
-        Récupère l'historique des messages pour un conversation_id donné (optionnellement filtré par telegram_id).
-        Nécessite que conversation_id soit un attribut dans chaque item.
-        """
-        dynamo_client = Utils.get_dynamo_client()
-        # Utilisation de Query avec FilterExpression (pas optimal, mais pas de Scan)
-        # Si un GSI sur conversation_id existe, il faudrait l'utiliser ici
-        
-        if telegram_id is None:
-            raise ValueError("telegram_id is required for this operation")
-            
-        key_condition = 'PK = :pk'
-        expr_attr = {':pk': {'S': f'USER#{telegram_id}'}}
-        response = dynamo_client.query(
-            TableName=settings.DYNAMO_TABLE,
-            KeyConditionExpression=key_condition,
-            FilterExpression='conversation_id = :cid',
-            ExpressionAttributeValues={**expr_attr, ':cid': {'S': conversation_id}},
-            Limit=limit,
-            ScanIndexForward=True
-        )
-        return response.get('Items', [])
-    
-    @staticmethod
-    def save_conversation_message(telegram_id: str, conversation_id: str, user_message: str, bot_response: str, timestamp: Optional[str] = None):
-        """
-        Enregistre un message de conversation dans DynamoDB avec la structure PK/SK recommandée.
-        """
-        if not timestamp:
-            timestamp = datetime.utcnow().isoformat()
-        item = {
-            'PK': {'S': f'USER#{telegram_id}'},
-            'SK': {'S': f'MSG#{timestamp}'},
-            'conversation_id': {'S': conversation_id},
-            'user_message': {'S': user_message},
-            'bot_response': {'S': bot_response},
-            'timestamp': {'S': timestamp},
-        }
-        dynamo_client = Utils.get_dynamo_client()
-        dynamo_client.put_item(
-            TableName=settings.DYNAMO_TABLE,
-            Item=item,
-        )
-
-    @staticmethod
-    def get_conversation_history(telegram_id: str, limit: int = 20):
-        """
-        Récupère l'historique des messages d'un utilisateur via Query (jamais Scan).
-        """
-        dynamo_client = Utils.get_dynamo_client()
-        response = dynamo_client.query(
-            TableName=settings.DYNAMO_TABLE,
-            KeyConditionExpression='PK = :pk',
-            ExpressionAttributeValues={
-                ':pk': {'S': f'USER#{telegram_id}'},
-            },
-            Limit=limit,
-            ScanIndexForward=True  # Chronological order
-        )
-        return response.get('Items', [])
 
     ALLOWED_EXTENSIONS = ["pdf", "docx", "doc", "png", "jpg", "jpeg"]
 
     @staticmethod
-    def log_info(message):
+    def log_info(message: str) -> None:
         """_summary_
         Log a simple info message
         """
         logging.getLogger("uvicorn.error").info(msg=f"==> {message}")
 
     @staticmethod
-    def log_debug(message):
+    def log_debug(message: str) -> None:
         """_summary_
         Log a debug message
         """
         logging.getLogger("uvicorn.error").debug(msg=f"==> {message}")
 
     @staticmethod
-    def log_error(message):
+    def log_error(message: str) -> None:
         """_summary_
         Log an error message
         """
         logging.getLogger("uvicorn.error").error(msg=f"==> {message}")
 
     @staticmethod
-    def log_list(elements: List[Any]):
+    def log_list(elements: List[Any]) -> None:
         if elements:
             logging.getLogger("uvicorn.error").info(
                 msg=f"Displaying all the {len(elements)} elements of the list"
@@ -159,88 +45,162 @@ class Utils:
                 logging.getLogger("uvicorn.error").info(
                     msg=f"##### {i} ==> {json.dumps(elements[i], indent=4)}"
                 )
-    
+
     @staticmethod
-    def get_logger():
+    def get_logger() -> Logger:
         return logging.getLogger("uvicorn.error")
-    
+
     @staticmethod
-    def get_session():
-        return boto3.Session(
-            region_name=settings.AWS_REGION, profile_name=settings.AWS_PROFILE
+    def get_dynamo_client() -> boto3.client:
+        """Get DynamoDB client with appropriate credentials"""
+        # Check if running in Lambda
+        is_lambda = bool(os.getenv("AWS_LAMBDA_FUNCTION_NAME"))
+
+        Utils.log_info(f"Running in Lambda environment: {is_lambda}")
+        Utils.log_info(f"AWS Region: {env_vars.AWS_REGION}")
+        Utils.log_info(f"AWS Profile: {os.getenv('AWS_PROFILE')}")
+        Utils.log_info(f"DynamoDB Table: {env_vars.DYNAMO_TABLE}")
+        Utils.log_info(f"AWS_ACCESS_KEY_ID from env: {os.getenv('AWS_ACCESS_KEY_ID')}")
+        Utils.log_info(
+            f"AWS_SECRET_ACCESS_KEY from env: {'*' * len(os.getenv('AWS_SECRET_ACCESS_KEY', ''))}"
         )
+        Utils.log_info(f"AWS_SECURITY_TOKEN from env: {os.getenv('AWS_SECURITY_TOKEN')}")
+        Utils.log_info(f"AWS_SESSION_TOKEN from env: {os.getenv('AWS_SESSION_TOKEN')}")
 
-    @staticmethod
-    def get_dynamo_client():
-        """Retourne un client DynamoDB configuré avec les bonnes credentials"""
-        if settings.AWS_ACCESS_KEY_ID and settings.AWS_SECRET_ACCESS_KEY:
-            return boto3.client(
-                'dynamodb',
-                aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-                aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
-                region_name=settings.AWS_REGION
-            )
+        # Get region from environment or settings
+        region = os.getenv("AWS_REGION") or env_vars.AWS_REGION
+
+        if is_lambda:
+            # In Lambda, use the role credentials
+            Utils.log_info("Using Lambda IAM role credentials")
+            return boto3.client("dynamodb", region_name=region)
         else:
-            return boto3.client('dynamodb', region_name=settings.AWS_REGION)
+            # Local development or test environment
+            Utils.log_info("Using local/test credentials")
+            return boto3.client(
+                "dynamodb",
+                region_name=region,
+                aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID") or env_vars.AWS_ACCESS_KEY_ID,
+                aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY")
+                or env_vars.AWS_SECRET_ACCESS_KEY,
+            )
 
     @staticmethod
-    def insert_data(item):
-        """Insère un item dans DynamoDB avec gestion d'erreurs améliorée"""
+    def get_dynamo_resource() -> boto3.resource:
+        """Get DynamoDB resource with appropriate credentials"""
+        # Check if running in Lambda
+        is_lambda = bool(os.getenv("AWS_LAMBDA_FUNCTION_NAME"))
+
+        # Get region from environment or settings
+        region = os.getenv("AWS_REGION") or env_vars.AWS_REGION
+
+        if is_lambda:
+            # In Lambda, use the role credentials
+            return boto3.resource("dynamodb", region_name=region)
+        else:
+            # Local development or test environment
+            return boto3.resource(
+                "dynamodb",
+                region_name=region,
+                aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID") or env_vars.AWS_ACCESS_KEY_ID,
+                aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY")
+                or env_vars.AWS_SECRET_ACCESS_KEY,
+            )
+
+    @staticmethod
+    def insert_data(item: Dict[str, Dict[str, str]]) -> bool:
         try:
+            Utils.log_info(f"Tentative d'insertion dans DynamoDB: {json.dumps(item, indent=2)}")
             dynamo_client = Utils.get_dynamo_client()
+
+            # Log environment information
+            Utils.log_info("Environment variables:")
+            Utils.log_info(f"- AWS_LAMBDA_FUNCTION_NAME: {os.getenv('AWS_LAMBDA_FUNCTION_NAME')}")
+            Utils.log_info(f"- AWS_REGION: {env_vars.AWS_REGION}")
+            Utils.log_info(f"- DYNAMO_TABLE: {env_vars.DYNAMO_TABLE}")
+
+            # Attempt the operation
             dynamo_client.put_item(
-                TableName=settings.DYNAMO_TABLE,
+                TableName=env_vars.DYNAMO_TABLE,
                 Item=item,
             )
-            Utils.log_info(f"Données sauvegardées dans DynamoDB: {item.get('id', {}).get('S', 'unknown_id')}")
+            Utils.log_info("Données insérées avec succès dans DynamoDB")
             return True
         except Exception as e:
-            Utils.log_error(f"Erreur lors de l'insertion DynamoDB: {e}")
-            return False
+            Utils.log_error(f"Erreur lors de l'insertion dans DynamoDB: {str(e)}")
+            Utils.log_error(f"Type d'erreur: {type(e).__name__}")
+            Utils.log_error(f"Details de l'erreur: {getattr(e, 'response', {}).get('Error', {})}")
+            raise e
 
     @staticmethod
-    def insert_chat_message(conversation_id: str, user_id: str, user_message: str, bot_response: str, mistral_id: Optional[str] = None):
-        """
-        Insère un message de chat complet dans DynamoDB avec tous les champs requis et timestamp automatique
-        """
-        from datetime import datetime
-        from uuid import uuid4
-        
-        timestamp = datetime.now().isoformat()
-        created_date = datetime.now().strftime('%Y-%m-%d')
-        message_id = f"msg_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{uuid4().hex[:8]}"
-        
-        item = {
-            'id': {'S': message_id},
-            'conversation_id': {'S': conversation_id},
-            'user_id': {'S': user_id},
-            'user_message': {'S': user_message},
-            'bot_response': {'S': bot_response},
-            'timestamp': {'S': timestamp},
-            'created_date': {'S': created_date},
-            'source': {'S': 'telegram'}
-        }
-        
-        # Ajouter l'ID Mistral si disponible
-        if mistral_id:
-            item['mistral_id'] = {'S': mistral_id}
-        
-        return Utils.insert_data(item)
+    def get_conversation_messages(conversation_id: str) -> List[Dict[str, Any]]:
+        """Récupère tous les messages d'une conversation spécifique"""
+        dynamo_resource = Utils.get_dynamo_resource()
+        table = dynamo_resource.Table(env_vars.DYNAMO_TABLE)
 
-# Export standalone functions for easier importing
-def get_dynamo_client():
-    """Standalone function to get DynamoDB client"""
-    return Utils.get_dynamo_client()
+        response = table.query(
+            IndexName="conversation_id-timestamp-index",  # l'index DynamoDB doit exister
+            KeyConditionExpression=Key("conversation_id").eq(conversation_id),
+            ScanIndexForward=True,  # Trier par timestamp croissant
+        )
 
-def insert_chat_message(user_id: str, user_message: str, bot_response: str, source: str = "api", mistral_id: Optional[str] = None):
-    """
-    Standalone function to insert chat message with auto-generated conversation_id
-    """
-    from datetime import datetime
-    from uuid import uuid4
-    
-    # Generate conversation_id based on source
-    timestamp_str = datetime.now().strftime('%Y%m%d_%H%M%S')
-    conversation_id = f"{source}_chat_{timestamp_str}_{uuid4().hex[:8]}"
-    
-    return Utils.insert_chat_message(conversation_id, user_id, user_message, bot_response, mistral_id)
+        items: List[Dict[str, Any]] = response.get("Items", [])
+        return items
+
+    @staticmethod
+    def get_user_conversations(user_id: str) -> list:
+        """Récupère toutes les conversations d'un utilisateur en utilisant l'index"""
+        dynamo_resource = Utils.get_dynamo_resource()
+        table = dynamo_resource.Table(env_vars.DYNAMO_TABLE)
+
+        # Utilise une requête sur l'index avec le user_id
+        response = table.query(
+            IndexName="user_id-timestamp-index",  # Vous devrez créer cet index
+            KeyConditionExpression=Key("user_id").eq(user_id),
+            ScanIndexForward=False,  # Pour avoir les conversations les plus récentes en premier
+        )
+
+        # Groupe les messages par conversation_id
+        conversations: Dict[str, Dict[str, Any]] = {}
+        for item in response.get("Items", []):
+            conv_id = item.get("conversation_id")
+            if conv_id not in conversations:
+                conversations[conv_id] = {
+                    "conversation_id": conv_id,
+                    "last_message": item.get("timestamp"),
+                    "messages_count": 1,
+                }
+            else:
+                conversations[conv_id]["messages_count"] += 1
+
+        return list(conversations.values())
+
+    @staticmethod
+    def delete_conversation_messages(conversation_id: str) -> bool:
+        """Supprime tous les messages d'une conversation spécifique"""
+        try:
+            # Récupérer d'abord tous les messages de la conversation
+            messages = Utils.get_conversation_messages(conversation_id)
+
+            if not messages:
+                Utils.log_info(f"Aucun message à supprimer pour la conversation {conversation_id}")
+                return True
+
+            dynamo_resource = Utils.get_dynamo_resource()
+            table = dynamo_resource.Table(env_vars.DYNAMO_TABLE)
+
+            # Supprimer chaque message
+            with table.batch_writer() as batch:
+                for message in messages:
+                    batch.delete_item(Key={"id": message["id"]})
+
+            Utils.log_info(
+                f"Suppression réussie de {len(messages)} messages. ID: {conversation_id}"
+            )
+            return True
+
+        except Exception as e:
+            Utils.log_error(
+                f"Erreur lors de la suppression des messages {conversation_id}: {str(e)}"
+            )
+            raise e
