@@ -9,14 +9,13 @@ pipeline {
         // Define environment variables here
         BOT_NAME = 'awesome-bot'
         // BOT_TOKEN = credentials('telegram-bot-token')
-    }
-
-    stages {
+    }    stages {
         stage('Initialisation') {
             steps {
                 sh "echo Branch name ${BRANCH_NAME}"
                 sh "make venv && make install"
-            }        }
+            }
+        }
         
         stage('Environnement variable injection'){
             steps {
@@ -26,7 +25,9 @@ pipeline {
                     }
                 }
             }
-        }        stage('Tests Unitaires') {
+        }
+
+        stage('Tests Unitaires') {
             steps {
                 script {
                     // Charger les variables d'environnement et exécuter les tests
