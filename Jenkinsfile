@@ -57,29 +57,14 @@ pipeline {
                     sh "make build"
                 }
             }
-        }        stage('Deploy') {
+        }
+
+        stage('Deploy') {
             steps {
                 script {
                     // Add your deployment commands here
                     echo "Deploying the project..."
                     sh "make deploy env=${BRANCH_NAME}"
-                }
-            }
-        }
-
-        stage('Configure Webhook') {
-            steps {
-                script {
-                    // Get the API URL from CloudFormation outputs and configure webhook
-                    echo "Configuring Telegram webhook..."
-                    sh """
-                        # Get the API URL from CloudFormation
-                        API_URL=\$(aws cloudformation describe-stacks --stack-name multi-stack-${BRANCH_NAME} --region eu-west-3 --query "Stacks[0].Outputs[?OutputKey=='ApiUrl'].OutputValue" --output text)
-                        echo "API URL: \$API_URL"
-                        
-                        # Configure the webhook
-                        python tools/set_webhook.py --url "\${API_URL}/telegram/webhook"
-                    """
                 }
             }
         }
