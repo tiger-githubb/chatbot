@@ -28,8 +28,23 @@ deploy-local:
 deploy:
 	@echo "Deploying to " ${env}
 	# Extract env from the branch name
-	sam deploy --resolve-s3 --template-file .aws-sam/build/template.yaml --stack-name multi-stack-${env} \
-         --capabilities CAPABILITY_IAM --region ${AWS_REGION} --parameter-overrides EnvironmentName=${env} --no-fail-on-empty-changeset
+	@if [ -f .env ]; then \
+		echo "Loading environment variables from .env..."; \
+		TELEGRAM_BOT_TOKEN=$$(grep '^TELEGRAM_BOT_TOKEN' .env | cut -d'=' -f2 | tr -d ' '); \
+		MISTRAL_API_KEY=$$(grep '^MISTRAL_API_KEY' .env | cut -d'=' -f2 | tr -d ' '); \
+		TELEGRAM_WEBHOOK_URL=$$(grep '^TELEGRAM_WEBHOOK_URL' .env | cut -d'=' -f2 | tr -d ' ' || echo ""); \
+		sam deploy --resolve-s3 --template-file .aws-sam/build/template.yaml --stack-name multi-stack-${env} \
+			--capabilities CAPABILITY_IAM --region ${AWS_REGION} \
+			--parameter-overrides \
+			EnvironmentName=${env} \
+			TelegramBotToken="$$TELEGRAM_BOT_TOKEN" \
+			MistralApiKey="$$MISTRAL_API_KEY" \
+			TelegramWebhookUrl="$$TELEGRAM_WEBHOOK_URL" \
+			--no-fail-on-empty-changeset; \
+	else \
+		echo "Error: .env file not found. Cannot deploy without environment variables."; \
+		exit 1; \
+	fi
 
 serve:
 	venv/bin/fastapi dev src/main.py
