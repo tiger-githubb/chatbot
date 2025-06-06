@@ -25,7 +25,6 @@ class TelegramBot:
         """Configure les gestionnaires de commandes du bot"""
         self.application.add_handler(CommandHandler("start", self._start_command))
         self.application.add_handler(CommandHandler("help", self._help_command))
-        self.application.add_handler(CommandHandler("settings", self._settings_command))
         self.application.add_handler(CommandHandler("stats", self._stats_command))
         self.application.add_handler(CommandHandler("clear", self._clear_command))
         self.application.add_handler(CallbackQueryHandler(self._button_click))
@@ -40,14 +39,17 @@ class TelegramBot:
             return
 
         welcome_message = (
-            "👋 Bonjour! Je suis votre assistant conversationnel.\n\n"
-            "Je peux vous aider avec diverses tâches et répondre à vos questions.\n\n"
-            "Commandes disponibles:\n"
-            "🔹 /help - Afficher l'aide détaillée\n"
-            "🔹 /settings - Configurer vos préférences\n"
-            "🔹 /stats - Voir vos statistiques\n"
-            "🔹 /clear - Effacer l'historique\n\n"
-            "Pour commencer, envoyez-moi simplement un message!"
+            "🐅 Salut ! Moi c'est Tiger, ton assistant IA !\n\n"
+            "✨ Je suis là pour tchatcher avec toi et t'aider sur tout ce que tu veux :\n"
+            "• Répondre à tes questions (même les plus bizarres)\n"
+            "• Expliquer des trucs compliqués simplement\n"
+            "• T'aider sur tes projets\n"
+            "• Analyser du contenu\n\n"
+            "🎯 Commandes dispo :\n"
+            "• /help - Si tu veux plus d'infos\n"
+            "• /stats - Voir tes stats de chat\n"
+            "• /clear - Reset total si tu veux repartir à zéro\n\n"
+            "💬 Balance-moi juste ton message et on se lance ! 🚀"
         )
         await self.application.bot.send_message(
             chat_id=update.message.chat.id, text=welcome_message
@@ -59,45 +61,24 @@ class TelegramBot:
             return
 
         help_message = (
-            "📚 Guide d'utilisation\n\n"
-            "1️⃣ Conversation normale:\n"
-            "   - Envoyez simplement vos messages\n"
-            "   - Je maintiens le contexte de la conversation\n\n"
-            "2️⃣ Commandes disponibles:\n"
-            "   🔸 /start - Démarrer une nouvelle conversation\n"
-            "   🔸 /help - Afficher ce message d'aide\n"
-            "   🔸 /settings - Configurer vos préférences\n"
-            "   🔸 /stats - Voir vos statistiques\n"
-            "   🔸 /clear - Effacer l'historique\n\n"
-            "3️⃣ Bonnes pratiques:\n"
-            "   - Soyez précis dans vos questions\n"
-            "   - Une question à la fois\n"
-            "   - Utilisez /clear pour recommencer\n\n"
-            "Pour toute question ou problème, n'hésitez pas à demander!"
+            "📚 Guide Tiger - Comment ça marche ?\n\n"
+            "🤙 En gros c'est simple :\n"
+            "   • Tu m'écris ce que tu veux\n"
+            "   • Je traite chaque message indépendamment\n"
+            "   • Je te réponds avec l'IA Mistral\n"
+            "   • Tout est sauvegardé au cas où\n\n"
+            "⚡ Les commandes qui marchent vraiment :\n"
+            "   🔸 /start - Retour à l'accueil\n"
+            "   🔸 /help - Ce message (tu y es déjà !)\n"
+            "   🔸 /stats - Tes stats de ouf\n"
+            "   🔸 /clear - Effacer l'historique si tu veux reset\n\n"
+            "💡 Mes tips pour bien s'amuser :\n"
+            "   • Sois précis, ça m'aide à mieux répondre\n"
+            "   • Une question à la fois, on n'est pas pressés\n"
+            "   • Si je bug, utilise /clear et on repart\n\n"
+            "🤔 Une question ? Vas-y, pose-moi ce que tu veux !"
         )
         await self.application.bot.send_message(chat_id=update.message.chat.id, text=help_message)
-
-    async def _settings_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-        """Gère la commande /settings"""
-        if not update.message or not update.effective_chat:
-            return
-
-        keyboard = [
-            [
-                InlineKeyboardButton("🔔 Notifications", callback_data="settings_notifications"),
-                InlineKeyboardButton("🌍 Langue", callback_data="settings_language"),
-            ],
-            [
-                InlineKeyboardButton("📝 Format des réponses", callback_data="settings_format"),
-                InlineKeyboardButton("🎨 Thème", callback_data="settings_theme"),
-            ],
-        ]
-        reply_markup = InlineKeyboardMarkup(keyboard)
-        await self.application.bot.send_message(
-            chat_id=update.message.chat.id,
-            text="⚙️ Paramètres\n\n Choisissez un paramètre à configurer:",
-            reply_markup=reply_markup,
-        )
 
     async def _stats_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """Gère la commande /stats"""
@@ -122,28 +103,34 @@ class TelegramBot:
                 )
 
                 stats_message = (
-                    "📊 Vos Statistiques\n\n"
-                    f"📝 Nombre total de messages: {total_messages}\n"
-                    f"📅 Premier message: {first_date.strftime('%d/%m/%Y')}\n"
-                    f"💬 Conversation active depuis: {(datetime.now() - first_date).days} jours\n"
-                    f"📈 Moyenne de messages par jour: {average_messages_per_day:.1f}"
+                    "📊 Tes stats de ouf avec Tiger !\n\n"
+                    f"💬 Messages échangés ensemble : {total_messages}\n"
+                    f"📅 On se connaît depuis le : {first_date.strftime('%d/%m/%Y à %H:%M')}\n"
+                    f"⏱️ Ça fait : {(datetime.now() - first_date).days} jour(s) qu'on tchat\n"
+                    f"📈 En moyenne : {average_messages_per_day:.1f} message(s) par jour\n\n"
+                    f"🔥 Continue comme ça, on forme une super équipe ! 🚀"
                 )
             else:
                 stats_message = (
-                    "📊 Vos Statistiques\n\n"
-                    "Vous n'avez pas encore de messages.\n"
-                    "Commencez à discuter pour voir vos statistiques!"
+                    "📊 Tes stats avec Tiger\n\n"
+                    "🆕 Hey ! On vient juste de se rencontrer !\n\n"
+                    "💡 Commençons l'aventure :\n"
+                    "• Pose-moi une question cool\n"
+                    "• Demande-moi d'expliquer un truc\n"
+                    "• Fais-moi analyser quelque chose\n"
+                    "• Ou on peut juste papoter tranquille\n\n"
+                    "🎯 Tes stats vont apparaître ici au fur et à mesure de nos discussions !"
                 )
 
             await self.application.bot.send_message(
                 chat_id=update.message.chat.id, text=stats_message
             )
-
         except Exception as e:
             Utils.log_error(f"Erreur lors de la récupération des statistiques: {str(e)}")
             await self.application.bot.send_message(
                 chat_id=update.message.chat.id,
-                text="Désolé, une erreur s'est produite lors de la récupération des statistiques.",
+                text="😅 Oups, Tiger a un petit problème technique avec tes stats...\n\n"
+                     "🔄 Réessaie dans quelques secondes, ça devrait passer !",
             )
 
     async def _clear_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -153,15 +140,20 @@ class TelegramBot:
 
         keyboard = [
             [
-                InlineKeyboardButton("✅ Oui, effacer", callback_data="clear_confirm"),
-                InlineKeyboardButton("❌ Non, annuler", callback_data="clear_cancel"),
+                InlineKeyboardButton("🗑️ Ouais, on efface tout", callback_data="clear_confirm"),
+                InlineKeyboardButton("🔙 Non, on garde", callback_data="clear_cancel"),
             ]
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
         await self.application.bot.send_message(
             chat_id=update.message.chat.id,
-            text="🗑️ Êtes-vous sûr de vouloir effacer l'historique de conversation?\n"
-            "Cette action est irréversible.",
+            text="⚠️ Attends, tu es sûr ?\n\n"
+                 "Tiger va supprimer définitivement :\n"
+                 "• Tout notre historique de chat\n"
+                 "• Toutes tes questions et mes réponses\n"
+                 "• Tes stats actuelles\n\n"
+                 "⚡ Impossible de revenir en arrière après ça !\n\n"
+                 "Tu confirmes le reset total ?",
             reply_markup=reply_markup,
         )
 
@@ -176,33 +168,31 @@ class TelegramBot:
         if not query.data:
             return
 
-        if query.data.startswith("settings_"):
-            setting = query.data.split("_")[1]
-            messages = {
-                "notifications": "🔔 Les paramètres de notification seront bientôt disponibles!",
-                "language": "🌍 Le support multilingue sera ajouté prochainement!",
-                "format": "📝 Les options de format seront disponibles bientôt!",
-                "theme": "🎨 La personnalisation du thème arrive bientôt!",
-            }
-            await query.edit_message_text(
-                messages.get(setting, "⚙️ Cette option n'est pas encore disponible.")
-            )
-
-        elif query.data.startswith("clear_"):
+        if query.data.startswith("clear_"):
             action = query.data.split("_")[1]
             chat_id = str(update.effective_chat.id)
             if action == "confirm":
                 try:
                     # Supprimer les messages
                     Utils.delete_conversation_messages(chat_id)
-                    await query.edit_message_text("🗑️ Historique effacé avec succès!")
+                    await query.edit_message_text(
+                        "✅ C'est fait ! Historique effacé !\n\n"
+                        "🆕 On repart à zéro toi et moi.\n"
+                        "💬 Vas-y, relance-moi quelque chose de cool ! 🚀"
+                    )
                 except Exception as e:
                     Utils.log_error(f"Erreur lors de la suppression de l'historique: {str(e)}")
                     await query.edit_message_text(
-                        "❌ Une erreur s'est produite lors de la suppression de l'historique."
+                        "😅 Oups ! Tiger galère à effacer l'historique...\n\n"
+                        "🔧 Problème technique temporaire.\n"
+                        "🔄 Réessaie dans quelques instants !"
                     )
             else:
-                await query.edit_message_text("❌ Opération annulée.")
+                await query.edit_message_text(
+                    "👍 Parfait ! On garde tout !\n\n"
+                    "✅ Notre historique de chat est bien conservé.\n"
+                    "💬 On continue notre discussion ! 😎"
+                )
 
     async def _handle_message(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """Gère les messages texte reçus"""
@@ -264,7 +254,9 @@ class TelegramBot:
             Utils.log_error(f"Erreur lors du traitement du message Telegram: {str(e)}")
             await self.application.bot.send_message(
                 chat_id=update.message.chat.id,
-                text="Désolé, une erreur s'est produite lors du traitement de votre message.",
+                text="😅 Oups ! Tiger a un petit bug là...\n\n"
+                     "🔄 Réessaie ton message dans quelques secondes !\n"
+                     "💡 Si ça persiste, utilise /clear pour qu'on reparte à zéro.",
             )
 
     async def setup_webhook(self) -> None:

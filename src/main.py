@@ -1,39 +1,35 @@
-from fastapi import FastAPI, Request, Response, WebSocket, BackgroundTasks
-from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
-from mangum import Mangum
-from mistralai import Mistral
-from mistralai import ChatCompletionResponse
 from datetime import datetime, timezone
+from typing import Any, AsyncGenerator, Awaitable, Callable, Dict, List, Optional, Union
 from uuid import uuid4
-from typing import Dict, List, Optional, Any, AsyncGenerator, Union, Awaitable, Callable
+
+from fastapi import BackgroundTasks, FastAPI, Request, Response, WebSocket
+from fastapi.middleware.cors import CORSMiddleware
+from mangum import Mangum
+from mistralai import ChatCompletionResponse, Mistral
 from slowapi import Limiter, _rate_limit_exceeded_handler
-from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
+from slowapi.util import get_remote_address
 
 from .config import env_vars
-from .utils import Utils
 from .telegram_bot import telegram_bot
+from .utils import Utils
 
-api_key = env_vars.MISTRAL_API_KEY
-model = "mistral-small-latest"
-client = Mistral(api_key=api_key)
-
-# Création du limiteur de taux
-limiter = Limiter(key_func=get_remote_address)
-
-# Type pour le handler d'exception
 ExceptionHandler = Union[
     Callable[[Request, Exception], Union[Response, Awaitable[Response]]],
     Callable[[WebSocket, Exception], Awaitable[None]],
 ]
 
+api_key = env_vars.MISTRAL_API_KEY
+model = "mistral-small-latest"
+client = Mistral(api_key=api_key)
+
+limiter = Limiter(key_func=get_remote_address)
+
 
 @asynccontextmanager
 async def app_lifespan(application: FastAPI) -> AsyncGenerator[None, None]:
     Utils.log_info("Starting the application")
-    # Ne pas configurer le webhook au démarrage car l'URL n'est pas encore disponible
-    # await telegram_bot.setup_webhook()
     yield
 
 
@@ -64,21 +60,17 @@ async def root(request: Request) -> Dict[str, str]:
 @app.post(env_vars.TELEGRAM_WEBHOOK_PATH)
 @limiter.limit("60/minute")
 async def telegram_webhook(request: Request, background_tasks: BackgroundTasks) -> Dict[str, str]:
-    """Endpoint pour recevoir les mises à jour de Telegram"""
     try:
-        # Improved error handling for JSON parsing
         content_type = request.headers.get("content-type", "")
         if not content_type.startswith("application/json"):
             Utils.log_error(f"Invalid content-type: {content_type}")
             return {"status": "error", "message": "Invalid content-type"}
 
-        # Get raw body first to debug
         body = await request.body()
         if not body:
             Utils.log_error("Empty request body received")
             return {"status": "error", "message": "Empty request body"}
 
-        # Parse JSON with better error handling
         try:
             update_data = await request.json()
         except ValueError as json_error:
@@ -89,7 +81,6 @@ async def telegram_webhook(request: Request, background_tasks: BackgroundTasks) 
             Utils.log_error("Parsed JSON is empty")
             return {"status": "error", "message": "Empty update data"}
 
-        # Process the update and get the response
         background_tasks.add_task(telegram_bot.handle_update, update_data)
         return {"status": "ok"}
 
@@ -128,17 +119,11 @@ async def chat(
 
         timestamp = datetime.now(timezone.utc).isoformat()
         response = {
-            "id": {
-                "S": f"{chat_response.id}",
-            },
+            "id": {"S": f"{chat_response.id}"},
             "conversation_id": {"S": conversation_id},
             "timestamp": {"S": timestamp},
-            "question": {
-                "S": f"{question}",
-            },
-            "answer": {
-                "S": f"{chat_response.choices[0].message.content}",
-            },
+            "question": {"S": f"{question}"},
+            "answer": {"S": f"{chat_response.choices[0].message.content}"},
             "source": {"S": "api"},
         }
         Utils.insert_data(response)
@@ -154,7 +139,6 @@ async def chat(
 async def get_conversation(
     request: Request, conversation_id: str
 ) -> Dict[str, List[Dict[str, Any]]]:
-    """Récupère tous les messages d'une conversation"""
     messages = Utils.get_conversation_messages(conversation_id)
     return {"messages": messages}
 
@@ -162,7 +146,6 @@ async def get_conversation(
 @app.get("/chats/{user_id}")
 @limiter.limit("30/minute")
 async def get_user_chats(request: Request, user_id: str) -> Dict[str, List[Dict[str, Any]]]:
-    """Récupère toutes les conversations d'un utilisateur"""
     messages = Utils.get_user_conversations(user_id)
     return {"conversations": messages}
 
