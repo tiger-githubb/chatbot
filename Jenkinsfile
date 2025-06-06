@@ -18,14 +18,33 @@ pipeline {
                 sh "make venv && make install"
             }
         }
-
+        
+        stage('Environnement variable injection'){
+            steps {
+                script{
+                    withCredentials([file(credentialsId: 'aristidekarbou-chatbot-env-file', variable: 'ENV_FILE')]) {
+                        sh "cat ${ENV_FILE} > .env"
+                    }
+                }
+            }
+        }
 
         stage('Tests Unitaires') {
             steps {
                 script {
-                    // Add your test commands here
-                    echo "Running tests..."
-                    sh "make test"
+                    // Charger les variables d'environnement et exécuter les tests
+                    echo "Running tests with environment validation..."
+                    sh """
+                        # Nettoyer et exporter les variables d'environnement depuis .env
+                        if [ -f .env ]; then
+                            echo "Loading environment variables from .env..."
+                            # Supprimer les espaces autour du = et exporter
+                            sed 's/[[:space:]]*=[[:space:]]*/=/g' .env > .env.clean
+                            export \$(cat .env.clean | grep -v '^#' | grep -v '^[[:space:]]*\$' | xargs)
+                            echo "Environment variables loaded successfully"
+                        fi
+                        make test
+                    """
                 }
             }
         }
@@ -85,5 +104,4 @@ pipeline {
             }
         }
     }
-
 }
