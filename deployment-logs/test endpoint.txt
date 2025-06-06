@@ -1,9 +1,0 @@
-Testing the endpoint...
-+ make test-endpoint
-Running endpoint tests...
-aws cloudformation describe-stacks --stack-name multi-stack- --region eu-west-3 \
-	--query "Stacks[0].Outputs[?OutputKey=='ApiUrl'].OutputValue" --output text | xargs -I {} curl -X GET {}
-
-An error occurred (ValidationError) when calling the DescribeStacks operation: Stack with id multi-stack- does not exist
-Post-build actions...
-Build succeeded!

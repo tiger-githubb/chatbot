@@ -1,4 +1,0 @@
-Warning: A secret was passed to "sh" using Groovy String interpolation, which is insecure.
-		 Affected argument(s) used the following variable(s): [ENV_FILE]
-		 See https://jenkins.io/redirect/groovy-string-interpolation for details.
-+ cat ****
