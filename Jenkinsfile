@@ -27,17 +27,17 @@ pipeline {
                     }
                 }
             }
-        }
-
-        stage('Tests Unitaires') {
+        }        stage('Tests Unitaires') {
             steps {
                 script {
                     // Charger les variables d'environnement et exécuter les tests
                     echo "Running tests with environment validation..."
                     sh """
-                        # Exporter les variables d'environnement depuis .env
+                        # Nettoyer et exporter les variables d'environnement depuis .env
                         if [ -f .env ]; then
-                            export \$(cat .env | grep -v '^#' | xargs)
+                            echo "Loading environment variables from .env..."
+                            # Supprimer les espaces autour du = et exporter
+                            export \$(cat .env | grep -v '^#' | grep -v '^[[:space:]]*\$' | sed 's/[[:space:]]*=[[:space:]]*/=/' | xargs)
                         fi
                         make test-jenkins
                     """
