@@ -16,8 +16,7 @@ pipeline {
             steps {
                 sh "echo Branch name ${BRANCH_NAME}"
                 sh "make venv && make install"
-            }
-        }
+            }        }
         
         stage('Environnement variable injection'){
             steps {
@@ -37,9 +36,11 @@ pipeline {
                         if [ -f .env ]; then
                             echo "Loading environment variables from .env..."
                             # Supprimer les espaces autour du = et exporter
-                            export \$(cat .env | grep -v '^#' | grep -v '^[[:space:]]*\$' | sed 's/[[:space:]]*=[[:space:]]*/=/' | xargs)
+                            sed 's/[[:space:]]*=[[:space:]]*/=/g' .env > .env.clean
+                            export \$(cat .env.clean | grep -v '^#' | grep -v '^[[:space:]]*\$' | xargs)
+                            echo "Environment variables loaded successfully"
                         fi
-                        make test-jenkins
+                        make test
                     """
                 }
             }

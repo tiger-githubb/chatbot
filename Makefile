@@ -42,6 +42,8 @@ test-jenkins:
 	@echo "Running Jenkins tests with environment validation..."
 	@if [ -f .env ]; then \
 		echo "Environment file found, validating..."; \
+		sed 's/ *= */=/g' .env > .env.clean && \
+		export $$(cat .env.clean | grep -v '^#' | grep -v '^$$' | xargs) && \
 		PYTHONPATH=. venv/bin/pytest tests/ --ignore=tools/ -v; \
 	else \
 		echo "Warning: No .env file found"; \
